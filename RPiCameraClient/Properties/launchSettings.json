@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RPiCameraClient": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
