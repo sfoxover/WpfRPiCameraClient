@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace RPiCameraClient
 {
@@ -21,12 +16,33 @@ namespace RPiCameraClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static AutoResetEvent WaitEvent = new AutoResetEvent(false);
+
         public MainWindow()
         {
             InitializeComponent();
 
             bool bOK = ImportSubscriber.StartSubscription();
             Debug.WriteLine($"StartSubscription {bOK}");
+
+            ReadImages();
+        }
+
+        private void ReadImages()
+        {
+            Task.Run(() =>
+            {
+                do
+                {
+                    int size = 0;
+                    ImportSubscriber.GetCurrentImage(out byte[] buffer, ref size);
+                    if (size > 0)
+                    {
+                        Image image = Image.FromStream(new MemoryStream(buffer));
+                    }
+                    // int size = imageBuffer.Length;
+                } while (WaitEvent.WaitOne(100) == false);
+            });
         }
     }
 }
