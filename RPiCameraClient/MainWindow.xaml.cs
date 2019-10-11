@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace RPiCameraClient
 {
@@ -19,6 +20,9 @@ namespace RPiCameraClient
     {
         private static AutoResetEvent WaitEvent = new AutoResetEvent(false);
 
+        // Calculate FPS
+        private volatile Int32 FramesPerSec = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -27,6 +31,13 @@ namespace RPiCameraClient
             Debug.WriteLine($"StartSubscription {bOK}");
 
             ReadImages();
+        }
+
+        // Clean up 
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            WaitEvent.Set();
+            ImportSubscriber.StopSubscription();
         }
 
         private void ReadImages()
@@ -40,6 +51,7 @@ namespace RPiCameraClient
                     ImportSubscriber.GetCurrentImage(ref pBuffer, ref size);
                     if (size > 0)
                     {
+                        FramesPerSec++;
                         byte[] imgBuffer = new byte[size];
                         Marshal.Copy(pBuffer, imgBuffer, 0, imgBuffer.Length);
 
@@ -49,8 +61,19 @@ namespace RPiCameraClient
                         }));                        
                     }
                     // int size = imageBuffer.Length;
-                } while (WaitEvent.WaitOne(100) == false);
+                } while (WaitEvent.WaitOne(10) == false);
             });
+
+            // Calculate FPS 
+            var timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 1);
+            timer.Tick += (s, args) =>
+            {
+                timer.IsEnabled = true;
+                LabelFPS.Content = $"Frames per second: {FramesPerSec}";
+                FramesPerSec = 0;
+            };
+            timer.Start();
         }
 
         private BitmapImage LoadImage(Stream stream)
@@ -66,6 +89,6 @@ namespace RPiCameraClient
 
             image.Freeze();
             return image;
-        }
+        }     
     }
 }

@@ -5,9 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RPiCameraClient"
         mc:Ignorable="d"
+        Closing="Window_Closing"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Image Name="VideoImg" Margin="10,10,10,10"/>
-
+        <StackPanel Orientation="Vertical" Width="Auto" Height="Auto">
+            <Label Name="LabelFPS" Content="Frames per second:"/>
+            <Image Name="VideoImg" Margin="10,10,10,10"/>
+        </StackPanel>
     </Grid>
 </Window>
