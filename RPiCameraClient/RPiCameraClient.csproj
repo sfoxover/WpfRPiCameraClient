@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UseWPF>true</UseWPF>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>VideoCamera.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +12,9 @@
       <HintPath>..\..\..\..\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\3.0.0\ref\netcoreapp3.0\System.Drawing.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)..\RPiCamera\build\RPiClientLib.dll&quot; &quot;$(OutDir)*&quot; /y" />
+  </Target>
 
 </Project>
