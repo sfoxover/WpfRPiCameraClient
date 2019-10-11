@@ -46,15 +46,20 @@ namespace RPiCameraClient
             {
                 do
                 {
+                    byte[] imgBuffer = null;
                     int size = 0;
-                    IntPtr pBuffer = IntPtr.Zero;
-                    ImportSubscriber.GetCurrentImage(ref pBuffer, ref size);
+                    unsafe
+                    {
+                        ImportSubscriber.GetCurrentImage(out byte** pBuffer, ref size);
+                        imgBuffer = new byte[size];
+                        if (size > 0)
+                        {
+                            Marshal.Copy((IntPtr)pBuffer, imgBuffer, 0, imgBuffer.Length);
+                        }
+                    }
                     if (size > 0)
                     {
                         FramesPerSec++;
-                        byte[] imgBuffer = new byte[size];
-                        Marshal.Copy(pBuffer, imgBuffer, 0, imgBuffer.Length);
-
                         Application.Current.Dispatcher.Invoke(new Action(() => 
                         { 
                             VideoImg.Source = LoadImage(new MemoryStream(imgBuffer)); 

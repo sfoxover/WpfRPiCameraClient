@@ -14,7 +14,7 @@ namespace RPiCameraClient
         public static extern bool StopSubscription();
 
         [DllImport("RPiClientLib.dll", EntryPoint = "#1", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetCurrentImage(ref IntPtr buffer, ref int size);
+        public unsafe static extern void GetCurrentImage(out byte** buffer, ref int size);
 
     }
 }
