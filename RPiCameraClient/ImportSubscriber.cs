@@ -7,8 +7,8 @@ namespace RPiCameraClient
 {
     public class ImportSubscriber
     {
-        [DllImport("RPiClientLib.dll", EntryPoint = "#2", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool StartSubscription();
+        [DllImport("RPiClientLib.dll", EntryPoint = "#2", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern bool StartSubscription(string topic);
 
         [DllImport("RPiClientLib.dll", EntryPoint = "#3", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool StopSubscription();
