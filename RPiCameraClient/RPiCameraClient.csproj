@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>VideoCamera.ico</ApplicationIcon>
+    <ApplicationIcon>iconfinder_videocam_44965_fPT_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
