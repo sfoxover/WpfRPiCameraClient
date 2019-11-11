@@ -13,9 +13,9 @@ namespace RPiCameraClient
         [DllImport("RPiClientWrapperLib.dll", EntryPoint = "#2", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GetCurrentSensorData(ref IntPtr buffer, ref int size);
 
-        [DllImport("RPiClientWrapperLib.dll", EntryPoint = "#3", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern bool StartSubscription(string topic);
-
+        [DllImport("RPiClientWrapperLib.dll", EntryPoint = "#3", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool StartSubscription();
+        
         [DllImport("RPiClientWrapperLib.dll", EntryPoint = "#4", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool StopSubscription();
     }

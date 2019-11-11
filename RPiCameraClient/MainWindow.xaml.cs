@@ -27,7 +27,7 @@ namespace RPiCameraClient
         {
             InitializeComponent();
             
-            bool bOK = ImportSubscriber.StartSubscription("video1");
+            bool bOK = ImportSubscriber.StartSubscription();
             Debug.WriteLine($"StartSubscription {bOK}");
 
             ReadImages();
