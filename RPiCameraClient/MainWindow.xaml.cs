@@ -76,6 +76,29 @@ namespace RPiCameraClient
             timer.Start();
         }
 
+        private void ReadSensors()
+        {
+            Task.Run(() =>
+            {
+                do
+                {
+                    int size = 0;
+                    IntPtr pBuffer = IntPtr.Zero;
+                    ImportSubscriber.GetCurrentSensorData(ref pBuffer, ref size);
+                    if (size > 0)
+                    {
+                        byte[] dataBuffer = new byte[size];
+                        Marshal.Copy(pBuffer, dataBuffer, 0, dataBuffer.Length);
+
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            LabelSensors.Content = System.Text.Encoding.UTF8.GetString(dataBuffer);
+                        }));
+                    }
+                } while (WaitEvent.WaitOne(10) == false);
+            });
+        }
+
         private BitmapImage LoadImage(Stream stream)
         {
             // assumes that the streams position is at the beginning
