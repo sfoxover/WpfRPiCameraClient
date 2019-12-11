@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace MessagesLibrary
@@ -52,7 +53,7 @@ namespace MessagesLibrary
 		}
 
 		// Overloaded operators
-		public static bool operator == (Message value, Message value2)
+		public static bool operator ==(Message value, Message value2)
 		{
 			if (value._data.Length != value2._data.Length)
 				return false;
@@ -67,7 +68,7 @@ namespace MessagesLibrary
 			bool equal = value._data == value2._data;
 			return equal;
 		}
-		public static bool operator != (Message value, Message value2)
+		public static bool operator !=(Message value, Message value2)
 		{
 			bool equal = value == value2;
 			return !equal;
@@ -182,72 +183,69 @@ namespace MessagesLibrary
 					JObject root = JObject.Parse(szJson);
 
 					// Load all json values into our header map
-					MessageHelper::LoadJsonIntoMap(root, _headerMap);
+					MessageHelper.LoadJsonIntoMap(root, _headerMap);
 
 					// Anything left over is the data buffer
 					posEnd += MESSAGE_MARKER_END.Length;
-					if(posEnd < buffer.Length)
+					if (posEnd < buffer.Length)
 					{
 						byte[] data = new byte[buffer.Length - posEnd];
-						buffer.CopyTo(data, );
+						buffer.CopyTo(data, posEnd);
 						SetData(data);
 					}
-				#if DEBUG
+#if DEBUG
 					// Test topic string value
-					string szTopic(buffer.begin(), posStart);
-					string szTopicJson;
-					GetTopic(szTopicJson);
-					assert(!szTopic.empty() && szTopic == szTopicJson);
-				#endif // DEBUG
+					string szTopic = UTF8Encoding.UTF8.GetString(buffer, 0, posStart);
+					string szTopicJson = GetTopic();
+					Debug.Assert(!string.IsNullOrEmpty(szTopic) && szTopic == szTopicJson);
+#endif // DEBUG
 				}
 			}
 		}
 
-	// Serialize message properties topic + magic marker + message type + micro seconds + message to buffer
-	void SerializeMessageToBuffer(out byte[] buffer)
-	{
-		// Write message topic
-		string topic;
-		GetTopic(topic);
-		assert(!topic.empty());
-		string strMessage = topic;
+		// Serialize message properties topic + magic marker + message type + micro seconds + message to buffer
+		void SerializeMessageToBuffer(out byte[] buffer)
+		{
+			// Write message topic
+			string topic = GetTopic();
+			Debug.Assert(!string.IsNullOrEmpty(topic));
+			string strMessage = topic;
 
-		// Add header start marker
-		strMessage += string((const char*)MESSAGE_MARKER_START, sizeof(MESSAGE_MARKER_START));
+			// Add header start marker
+			strMessage += MESSAGE_MARKER_START;
 
-		// Add header json values
-		Json::Value root;
-		SerializeHeaderMapToJson(_headerMap, root);
-		Json::StreamWriterBuilder builder;
-		const string json = Json::writeString(builder, root);
-		strMessage += json;
+			// Add header json values
+			JObject doc = new JObject();
+			SerializeHeaderMapToJson(_headerMap, ref doc);
+			string json = doc.ToString();
+			strMessage += json;
 
-		// Add header end marker
-		strMessage += string((const char*)MESSAGE_MARKER_END, sizeof(MESSAGE_MARKER_END));
+			// Add header end marker
+			strMessage += MESSAGE_MARKER_END;
 
-		// Convert header to vector
-		auto tempData = vector < unsigned char> (strMessage.c_str(), strMessage.c_str() + strMessage.size());
+			// Convert header to vector
+			buffer = UTF8Encoding.UTF8.GetBytes(strMessage);
 
-		// Append message buffer data
-		tempData.insert(tempData.end(), _data.begin(), _data.end());
-		buffer = move(tempData);
-	}
+			// Append message buffer data
+			System.Buffer.BlockCopy(_data, 0, buffer, buffer.Length, _data.Length);
+		}
 
 		// Convert header map to json
 		void SerializeHeaderMapToJson(Dictionary<string, object> map, ref JObject json)
 		{
-			foreach(var item in map) 
+			foreach (var item in map)
 			{
-				if (item.GetType() == GetType(Dictionary<string, object>))
+				if (item.GetType() == map.GetType())
 				{
 					JObject doc = new JObject();
-					SerializeHeaderMapToJson(any_cast < map < string, any >> (item.second), doc);
-					json[item] = doc;
+					SerializeHeaderMapToJson((Dictionary<string, object>)item.Value, ref doc);
+					json[item.Key] = doc;
 				}
 				else
 				{
-					json[item.first] = MessageHelper::AnyValueToJson(item.second);
+					json[item.Key] = MessageHelper.AnyValueToJson(item.Value);
 				}
-			});
+			}
 		}
+	}
 }
