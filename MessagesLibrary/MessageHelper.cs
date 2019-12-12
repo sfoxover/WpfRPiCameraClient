@@ -1,75 +1,119 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace MessagesLibrary
 {
     public class MessageHelper
     {
-        internal static void LoadJsonIntoMap(JObject json, Dictionary<string, object> map)
+        // Load video settings into map
+        public static Dictionary<string, object> LoadSettingsFromConfig(string configFilePath)
         {
-            var items = json.Children();
-            foreach(var item in items) 
+            var settings = new Dictionary<string, object>();
+            if (File.Exists(configFilePath))
             {
-                if (item.type() == Json::ValueType::objectValue)
+                // Read config file
+                try
                 {
-                    std::map < std::string, std::any > mapTemp;
-                    LoadJsonIntoMap(item, mapTemp);
+                    JObject root = null;
+                    using (StreamReader reader = File.OpenText(configFilePath))
+                    {
+                        root = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
+                    }
+                    if (root != null)
+                    {
+                        LoadJsonIntoMap(root, ref settings);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine($"LoadSettingsFromConfig error {ex.Message}");
+                    Debug.Assert(false);
+                }
+            }
+            return settings;
+        }
+
+        public static void LoadJsonIntoMap(JObject json, ref Dictionary<string, object> map)
+        {
+            foreach(var item in json.Children<JObject>()) 
+            {
+                string name = item.Properties().FirstOrDefault().Name;
+                if (item.Type == JTokenType.Object)
+                {
+                    var mapTemp = new Dictionary<string, object>();
+                    LoadJsonIntoMap((JObject)item, ref mapTemp);
                     map[name] = mapTemp;
                 }
                 else
                 {
-                    map[name] = MessageHelper::JsonToAnyValue(item);
+                    map[name] = JsonToAnyValue(item);
                 }
             }
         }
 
-        internal static JToken AnyValueToJson(object value)
+        // Convert json value to std::any object
+        private static object JsonToAnyValue(JObject json)
         {
-            Json::Value value;
+            object value = null;
             try
             {
-                if (object.type() == typeid(bool))
+                switch (json.Type)
                 {
-                    value = std::any_cast<bool>(object);
-                }
-                else if (object.type() == typeid(short))
-                {
-                    value = std::any_cast<short>(object);
-                }
-                else if (object.type() == typeid(int))
-                {
-                    value = std::any_cast<int>(object);
-                }
-                else if (object.type() == typeid(const char*))
-        {
-                    value = std::any_cast <const char*> (object);
-                }
-        else if (object.type() == typeid(std::string))
-                {
-                    value = std::any_cast < std::string> (object);
-                }
-                else if (object.type() == typeid(int64_t))
-                {
-                    value = std::any_cast<int64_t>(object);
-                }
-                else if (object.type() == typeid(uint64_t))
-                {
-                    value = std::any_cast<uint64_t>(object);
-                }
-                else
-                {
-                    std::cerr << "MessageHelper::AnyValueToJson unsupported std::any type: " << object.type().name() << std::endl;
-                    assert(false);
+                    case JTokenType.Boolean:
+                        {
+                            value = (Boolean)json;
+                            break;
+                        }
+                    case JTokenType.Integer:
+                        {
+                            value = (Int64)json;
+                            break;
+                        }
+                    case JTokenType.String:
+                        {
+                            value = (string)json;
+                            break;
+                        }
+                    case JTokenType.Float:
+                        {
+                            value = (float)json;
+                            break;
+                        }
+                    case JTokenType.Array:
+                        {
+                            var array = new List<object>();
+                            foreach (var item in json.Children<JObject>())
+                            {
+                                array.Add(JsonToAnyValue(item));
+                            }
+                            value = array;
+                            break;
+                        }
+                    default:
+                        {
+                            Debug.WriteLine($"MessageHelper::JsonToAnyValue unsupported std::any type: json.Type");
+                            Debug.Assert(false);
+                            break;
+                        }
                 }
             }
-            catch (std::bad_any_cast &err)
-    {
-                std::cerr << "MessageHelper::AnyValueToJson bad_any_cast: " << err.what() << std::endl;
-                assert(false);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MessageHelper::JsonToAnyValue bad_any_cast: {ex.Message}");
+                Debug.Assert(false);
             }
             return value;
-            }
+        }
+
+        internal static JToken AnyValueToJson(object value)
+        {
+            var result = JToken.FromObject(value);
+            return result;
+        }
     }
 }

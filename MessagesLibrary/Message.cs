@@ -33,7 +33,7 @@ namespace MessagesLibrary
 		};
 
 		// A map of any types that gets converted to and from json
-		Dictionary<string, object> _headerMap;
+		Dictionary<string, object> HeaderMap;
 
 		// Message payload
 		byte[] _data;
@@ -41,15 +41,15 @@ namespace MessagesLibrary
 		public Message()
 		{
 			SetMicroTime();
-			_headerMap["version"] = MESSAGE_VERSION;
+			HeaderMap["version"] = MESSAGE_VERSION;
 		}
 
 		public Message(byte[] data, Dictionary<string, object> map)
 		{
 			SetMicroTime();
-			_headerMap["version"] = MESSAGE_VERSION;
+			HeaderMap["version"] = MESSAGE_VERSION;
 			_data = data;
-			_headerMap = map;
+			HeaderMap = map;
 		}
 
 		// Overloaded operators
@@ -61,8 +61,10 @@ namespace MessagesLibrary
 				return true;
 
 			// Convert header map to json to test
-			SerializeHeaderMapToJson(value._headerMap, out JObject json1);
-			SerializeHeaderMapToJson(value2._headerMap, out JObject json2);
+			JObject json1 = new JObject();
+			JObject json2 = new JObject();
+			SerializeHeaderMapToJson(value.HeaderMap, ref json1);
+			SerializeHeaderMapToJson(value2.HeaderMap, ref json2);
 			if (json1 != json2)
 				return false;
 			bool equal = value._data == value2._data;
@@ -76,97 +78,102 @@ namespace MessagesLibrary
 
 		public void SetMicroTime()
 		{
-			_headerMap["time_stamp"] = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+			HeaderMap["time_stamp"] = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 		}
 
 
-		// Get Set a header key value pair in _headerMap
-		void GetHeaderMapValue(string key, out object value)
+		// Get Set a header key value pair in HeaderMap
+		public void GetHeaderMapValue(string key, out object value)
 		{
-			value = _headerMap[key];
+			value = HeaderMap[key];
 		}
 
-		void SetHeaderMapValue(string key, object value)
+		public void SetHeaderMapValue(string key, object value)
 		{
-			_headerMap[key] = value;
+			HeaderMap[key] = value;
 		}
 
 		// Get Set for _data
-		byte[] GetData()
+		public byte[] GetData()
 		{
 			return _data;
 		}
 
-		void SetData(byte[] value)
+		public void SetData(byte[] value)
 		{
-			_headerMap["data_size"] = value.Length;
+			HeaderMap["data_size"] = value.Length;
 			_data = value;
 		}
 
 		// Get Set for _type
-		MessageType GetMessageType()
+		public MessageType GetMessageType()
 		{
-			MessageType type = (MessageType)_headerMap["type"];
+			MessageType type = (MessageType)HeaderMap["type"];
 			return type;
 		}
 
-		void SetMessageType(MessageType value)
+		public void SetMessageType(MessageType value)
 		{
-			_headerMap["type"] = value;
+			HeaderMap["type"] = value;
 		}
 
 		// Get Set for _topic
-		string GetTopic()
+		public string GetTopic()
 		{
-			var value = (string)_headerMap["topic"];
+			var value = (string)HeaderMap["topic"];
 			return value;
 		}
 
-		void SetTopic(string value)
+		public void SetTopic(string value)
 		{
-			_headerMap["topic"] = value;
+			HeaderMap["topic"] = value;
 		}
 
 		// Get Set for _microTimeStamp
-		Int64 GetMicroTimeStamp()
+		public Int64 GetMicroTimeStamp()
 		{
-			var time = (Int64)_headerMap["time_stamp"];
+			var time = (Int64)HeaderMap["time_stamp"];
 			return time;
 		}
 
-		void SetMicroTimeStamp(Int64 value)
+		public void SetMicroTimeStamp(Int64 value)
 		{
-			_headerMap["time_stamp"] = value;
+			HeaderMap["time_stamp"] = value;
 		}
 
 		// Create message from key value pairs
-		void CreateMessageFromJson(string topic, MessageType type, Dictionary<string, object> items)
+		public static Message CreateMessageFromJson(string topic, MessageType type, Dictionary<string, object> items)
 		{
-			// Set topic and type
-			SetTopic(topic);
-			SetMessageType(type);
-			SetMicroTime();
+			var msg = new Message();
 
-			_headerMap["map_payload"] = items;
+			// Set topic and type
+			msg.SetTopic(topic);
+			msg.SetMessageType(type);
+			msg.SetMicroTime();
+			msg.HeaderMap["map_payload"] = items;
+			return msg;
 		}
 
 		// Set message values including data buffer
-		void CreateMessageFromBuffer(string topic, MessageType type, byte[] buffer)
+		public static Message CreateMessageFromBuffer(string topic, MessageType type, byte[] buffer)
 		{
+			Message msg = new Message();
+
 			// Set topic and type
-			SetTopic(topic);
-			SetMessageType(type);
-			SetMicroTime();
+			msg.SetTopic(topic);
+			msg.SetMessageType(type);
+			msg.SetMicroTime();
 
 			// Copy to buffer
-			SetData(buffer);
+			msg.SetData(buffer);
+			return msg;
 		}
 
 		// Deserialize buffer into message properties, topic + magic marker + message json + marker end + data
-		void DeserializeBufferToMessage(byte[] buffer)
+		public static Message DeserializeBufferToMessage(byte[] buffer)
 		{
-			buffer = null;
-			SetMessageType(MessageType.Unknown);
+			Message msg = new Message();
+			msg.SetMessageType(MessageType.Unknown);
 
 			// Search for start marker after topic
 			var posStart = Array.IndexOf(buffer, MESSAGE_MARKER_START);
@@ -183,7 +190,7 @@ namespace MessagesLibrary
 					JObject root = JObject.Parse(szJson);
 
 					// Load all json values into our header map
-					MessageHelper.LoadJsonIntoMap(root, _headerMap);
+					MessageHelper.LoadJsonIntoMap(root, ref msg.HeaderMap);
 
 					// Anything left over is the data buffer
 					posEnd += MESSAGE_MARKER_END.Length;
@@ -191,20 +198,21 @@ namespace MessagesLibrary
 					{
 						byte[] data = new byte[buffer.Length - posEnd];
 						buffer.CopyTo(data, posEnd);
-						SetData(data);
+						msg.SetData(data);
 					}
-#if DEBUG
+				#if DEBUG
 					// Test topic string value
 					string szTopic = UTF8Encoding.UTF8.GetString(buffer, 0, posStart);
-					string szTopicJson = GetTopic();
+					string szTopicJson = msg.GetTopic();
 					Debug.Assert(!string.IsNullOrEmpty(szTopic) && szTopic == szTopicJson);
-#endif // DEBUG
+				#endif // DEBUG
 				}
 			}
+			return msg;
 		}
 
 		// Serialize message properties topic + magic marker + message type + micro seconds + message to buffer
-		void SerializeMessageToBuffer(out byte[] buffer)
+		public void SerializeMessageToBuffer(out byte[] buffer)
 		{
 			// Write message topic
 			string topic = GetTopic();
@@ -216,7 +224,7 @@ namespace MessagesLibrary
 
 			// Add header json values
 			JObject doc = new JObject();
-			SerializeHeaderMapToJson(_headerMap, ref doc);
+			SerializeHeaderMapToJson(HeaderMap, ref doc);
 			string json = doc.ToString();
 			strMessage += json;
 
@@ -231,8 +239,9 @@ namespace MessagesLibrary
 		}
 
 		// Convert header map to json
-		void SerializeHeaderMapToJson(Dictionary<string, object> map, ref JObject json)
+		public static void SerializeHeaderMapToJson(Dictionary<string, object> map, ref JObject json)
 		{
+			Debug.Assert(json != null);
 			foreach (var item in map)
 			{
 				if (item.GetType() == map.GetType())
