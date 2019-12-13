@@ -59,8 +59,10 @@ namespace MessagesLibrary
 		public Message DeepCopy()
 		{
 			Message msg = new Message();
-			msg.HeaderMap = HeaderMap;
-			msg.Data = Data;
+			msg.HeaderMap = HeaderMap.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as object);
+
+			msg.Data = new byte[Data.Length];
+			Data.CopyTo(msg.Data, 0);
 			return msg;
 		}
 
