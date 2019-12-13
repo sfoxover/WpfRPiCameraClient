@@ -92,12 +92,12 @@ namespace Unittest
             byte[] buffer = { 0x61, 0x62, 0x63 };
             message1.SetData(buffer);
 
-            Message message2 = message1;
+            Message message2 = message1.DeepCopy();
             Assert.True(message1 == message2, "TestOperatorOverload failed == operator test.");
 
             // Make sure json data size is correct
             message2.GetHeaderMapValue("data_size", out object size);
-            Assert.True((UInt64)(size) == 3);
+            Assert.True((int)size == 3);
 
             byte[] data = message2.GetData();
             data[1] = 0x61;
@@ -112,18 +112,18 @@ namespace Unittest
         public void TestJsonConfigFile()
         {
             // Load settings map from json config file
-            string path = Helpers.AppendToRunPath("message_developer.json");
+            string path = Helpers.AppendToRunPath(@"..\..\..\assets\message_developer.json");
             var settingsMap = MessageHelper.LoadSettingsFromConfig(path);
 
             var publisher = (Dictionary<string, object>)settingsMap["Publisher"];
-            var uris = (List<string>)publisher["Endpoints"];
+            var uris = (List<object>)publisher["Endpoints"];
 
-            string uri = uris[0];
+            string uri = uris[0].ToString();
             Assert.True(uris.Count == 1 && uri == "tcp://*:5563", "TestJsonConfigFile failed publisher test.");
 
             var subscriber = (Dictionary<string, object>)settingsMap["Subscriber"];
-            uris = (List<string>)subscriber["Endpoints"];
-            uri = uris[0];
+            uris = (List<object>)subscriber["Endpoints"];
+            uri = uris[0].ToString();
             Assert.True(uris.Count == 1 && uri == "tcp://127.0.0.1:5563", "TestJsonConfigFile failed publisher test.");
         }
     }

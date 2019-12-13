@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Linq;
 
 namespace MessagesLibrary
 {
@@ -36,40 +37,53 @@ namespace MessagesLibrary
 		Dictionary<string, object> HeaderMap;
 
 		// Message payload
-		byte[] _data;
+		byte[] Data;
 
 		public Message()
 		{
+			Data = null;
+			HeaderMap = new Dictionary<string, object>();
 			SetMicroTime();
 			HeaderMap["version"] = MESSAGE_VERSION;
 		}
 
 		public Message(byte[] data, Dictionary<string, object> map)
 		{
+			HeaderMap = new Dictionary<string, object>();
 			SetMicroTime();
 			HeaderMap["version"] = MESSAGE_VERSION;
-			_data = data;
+			Data = data;
 			HeaderMap = map;
 		}
+
+		public Message DeepCopy()
+		{
+			Message msg = new Message();
+			msg.HeaderMap = HeaderMap;
+			msg.Data = Data;
+			return msg;
+		}
+
 
 		// Overloaded operators
 		public static bool operator ==(Message value, Message value2)
 		{
-			if (value._data.Length != value2._data.Length)
+			if (value.Data.Length != value2.Data.Length)
 				return false;
-			if (value._data.Length == 0)
+			if (value.Data.Length == 0)
 				return true;
 
 			// Convert header map to json to test
-			JObject json1 = new JObject();
-			JObject json2 = new JObject();
+			var json1 = new JObject();
+			var json2 = new JObject();
 			SerializeHeaderMapToJson(value.HeaderMap, ref json1);
 			SerializeHeaderMapToJson(value2.HeaderMap, ref json2);
-			if (json1 != json2)
+			if (!JToken.DeepEquals(json1, json2))
 				return false;
-			bool equal = value._data == value2._data;
+			bool equal = value.Data.SequenceEqual(value2.Data);
 			return equal;
 		}
+
 		public static bool operator !=(Message value, Message value2)
 		{
 			bool equal = value == value2;
@@ -93,16 +107,16 @@ namespace MessagesLibrary
 			HeaderMap[key] = value;
 		}
 
-		// Get Set for _data
+		// Get Set for Data
 		public byte[] GetData()
 		{
-			return _data;
+			return Data;
 		}
 
 		public void SetData(byte[] value)
 		{
 			HeaderMap["data_size"] = value.Length;
-			_data = value;
+			Data = value;
 		}
 
 		// Get Set for _type
@@ -235,7 +249,7 @@ namespace MessagesLibrary
 			buffer = UTF8Encoding.UTF8.GetBytes(strMessage);
 
 			// Append message buffer data
-			System.Buffer.BlockCopy(_data, 0, buffer, buffer.Length, _data.Length);
+			System.Buffer.BlockCopy(Data, 0, buffer, buffer.Length, Data.Length);
 		}
 
 		// Convert header map to json

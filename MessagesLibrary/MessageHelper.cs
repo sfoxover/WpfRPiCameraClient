@@ -40,24 +40,32 @@ namespace MessagesLibrary
 
         public static void LoadJsonIntoMap(JObject json, ref Dictionary<string, object> map)
         {
-            foreach(var item in json.Children<JObject>()) 
+            foreach (var item in json) 
             {
-                string name = item.Properties().FirstOrDefault().Name;
-                if (item.Type == JTokenType.Object)
+                if (item.Value.Type == JTokenType.Object)
                 {
                     var mapTemp = new Dictionary<string, object>();
-                    LoadJsonIntoMap((JObject)item, ref mapTemp);
-                    map[name] = mapTemp;
+                    LoadJsonIntoMap((JObject)item.Value, ref mapTemp);
+                    map[item.Key] = mapTemp;
+                }
+                else if (item.Value.Type == JTokenType.Array)
+                {
+                    List<object> array = new List<object>();
+                    foreach(var arrayItem in item.Value) 
+                    {
+                        array.Add(JsonToAnyValue((JToken)arrayItem));
+                    }
+                    map[item.Key] = array;
                 }
                 else
                 {
-                    map[name] = JsonToAnyValue(item);
+                    map[item.Key] = JsonToAnyValue((JToken)item.Value);
                 }
             }
         }
 
         // Convert json value to std::any object
-        private static object JsonToAnyValue(JObject json)
+        private static object JsonToAnyValue(JToken json)
         {
             object value = null;
             try
