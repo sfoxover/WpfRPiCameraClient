@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Linq;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MessagesLibrary
 {
-	public class Message
+	[Serializable]
+	public class Message 
 	{
 		// Message container version
 		const string MESSAGE_VERSION = "1.0";
@@ -56,16 +59,16 @@ namespace MessagesLibrary
 			HeaderMap = map;
 		}
 
-		public Message DeepCopy()
+		public static T DeepClone<T>(T obj)
 		{
-			Message msg = new Message();
-			msg.HeaderMap = HeaderMap.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as object);
-
-			msg.Data = new byte[Data.Length];
-			Data.CopyTo(msg.Data, 0);
-			return msg;
+			using (var ms = new MemoryStream())
+			{
+				var formatter = new BinaryFormatter();
+				formatter.Serialize(ms, obj);
+				ms.Position = 0;
+				return (T)formatter.Deserialize(ms);
+			}
 		}
-
 
 		// Overloaded operators
 		public static bool operator ==(Message value, Message value2)

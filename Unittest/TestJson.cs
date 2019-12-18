@@ -92,7 +92,7 @@ namespace Unittest
             byte[] buffer = { 0x61, 0x62, 0x63 };
             message1.SetData(buffer);
 
-            Message message2 = message1.DeepCopy();
+            Message message2 = Message.DeepClone(message1);
             Assert.True(message1 == message2, "TestOperatorOverload failed == operator test.");
 
             // Make sure json data size is correct
