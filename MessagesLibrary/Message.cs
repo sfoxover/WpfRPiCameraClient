@@ -73,10 +73,11 @@ namespace MessagesLibrary
 		// Overloaded operators
 		public static bool operator ==(Message value, Message value2)
 		{
-			if (value.Data.Length != value2.Data.Length)
+			// Check for empty data values
+			bool data1Empty = value.Data == null;
+			bool data2Empty = value2.Data == null;
+			if (data1Empty != data2Empty)
 				return false;
-			if (value.Data.Length == 0)
-				return true;
 
 			// Convert header map to json to test
 			var json1 = new JObject();
@@ -85,8 +86,17 @@ namespace MessagesLibrary
 			SerializeHeaderMapToJson(value2.HeaderMap, ref json2);
 			if (!JToken.DeepEquals(json1, json2))
 				return false;
-			bool equal = value.Data.SequenceEqual(value2.Data);
-			return equal;
+
+			if (!data1Empty && !data2Empty)
+			{
+				if (value.Data.Length != value2.Data.Length)
+					return false;
+				if (value.Data.Length == 0)
+					return true;
+				bool equal = value.Data.SequenceEqual(value2.Data);
+				return equal;
+			}
+			return true;
 		}
 
 		public static bool operator !=(Message value, Message value2)
@@ -195,17 +205,18 @@ namespace MessagesLibrary
 			msg.SetMessageType(MessageType.Unknown);
 
 			// Search for start marker after topic
-			var posStart = Array.IndexOf(buffer, MESSAGE_MARKER_START);
+			var markerStart = Helpers.FindInArray(buffer, MESSAGE_MARKER_START);
+			Debug.Assert(markerStart != -1);
 
 			// We found start marker so look for end marker
-			if (posStart < MAX_TOPIC_LENGTH)
+			if (markerStart < MAX_TOPIC_LENGTH)
 			{
-				posStart += MESSAGE_MARKER_START.Length;
-				var posEnd = Array.IndexOf(buffer, MESSAGE_MARKER_END);
+				int posStart = markerStart + MESSAGE_MARKER_START.Length;
+				var posEnd = Helpers.FindInArray(buffer, MESSAGE_MARKER_END);
 				if (posEnd != -1)
 				{
 					// Load json values into header map
-					string szJson = UTF8Encoding.UTF8.GetString(buffer, posStart, posEnd);
+					string szJson = UTF8Encoding.UTF8.GetString(buffer, posStart, posEnd - posStart);
 					JObject root = JObject.Parse(szJson);
 
 					// Load all json values into our header map
@@ -221,7 +232,7 @@ namespace MessagesLibrary
 					}
 				#if DEBUG
 					// Test topic string value
-					string szTopic = UTF8Encoding.UTF8.GetString(buffer, 0, posStart);
+					string szTopic = UTF8Encoding.UTF8.GetString(buffer, 0, markerStart);
 					string szTopicJson = msg.GetTopic();
 					Debug.Assert(!string.IsNullOrEmpty(szTopic) && szTopic == szTopicJson);
 				#endif // DEBUG
@@ -239,23 +250,30 @@ namespace MessagesLibrary
 			buffer = UTF8Encoding.UTF8.GetBytes(topic);
 
 			// Add header start marker
-			Array.Resize(ref buffer, buffer.Length + MESSAGE_MARKER_START.Length);
-			System.Buffer.BlockCopy(MESSAGE_MARKER_START, 0, buffer, 0, MESSAGE_MARKER_START.Length);
+			int endPos = buffer.Length;
+			Array.Resize(ref buffer, endPos + MESSAGE_MARKER_START.Length);
+			System.Buffer.BlockCopy(MESSAGE_MARKER_START, 0, buffer, endPos, MESSAGE_MARKER_START.Length);
 
 			// Add header json values
 			JObject doc = new JObject();
 			SerializeHeaderMapToJson(HeaderMap, ref doc);
 			byte[] jsonBytes = UTF8Encoding.UTF8.GetBytes(doc.ToString());
-			Array.Resize(ref buffer, buffer.Length + jsonBytes.Length);
-			System.Buffer.BlockCopy(jsonBytes, 0, buffer, 0, jsonBytes.Length);
+			endPos = buffer.Length;
+			Array.Resize(ref buffer, endPos + jsonBytes.Length);
+			System.Buffer.BlockCopy(jsonBytes, 0, buffer, endPos, jsonBytes.Length);
 
 			// Add header end marker
-			Array.Resize(ref buffer, buffer.Length + MESSAGE_MARKER_END.Length);
-			System.Buffer.BlockCopy(MESSAGE_MARKER_END, 0, buffer, 0, MESSAGE_MARKER_END.Length);
+			endPos = buffer.Length;
+			Array.Resize(ref buffer, endPos + MESSAGE_MARKER_END.Length);
+			System.Buffer.BlockCopy(MESSAGE_MARKER_END, 0, buffer, endPos, MESSAGE_MARKER_END.Length);
 
 			// Append message buffer data
-			Array.Resize(ref buffer, buffer.Length + Data.Length);
-			System.Buffer.BlockCopy(Data, 0, buffer, 0, Data.Length);
+			if (Data != null && Data.Length > 0)
+			{
+				endPos = buffer.Length;
+				Array.Resize(ref buffer, endPos + Data.Length);
+				System.Buffer.BlockCopy(Data, 0, buffer, endPos, Data.Length);
+			}
 		}
 
 		// Convert header map to json
