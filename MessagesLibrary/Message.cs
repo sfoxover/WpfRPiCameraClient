@@ -236,25 +236,26 @@ namespace MessagesLibrary
 			// Write message topic
 			string topic = GetTopic();
 			Debug.Assert(!string.IsNullOrEmpty(topic));
-			string strMessage = topic;
+			buffer = UTF8Encoding.UTF8.GetBytes(topic);
 
 			// Add header start marker
-			strMessage += MESSAGE_MARKER_START;
+			Array.Resize(ref buffer, buffer.Length + MESSAGE_MARKER_START.Length);
+			System.Buffer.BlockCopy(MESSAGE_MARKER_START, 0, buffer, 0, MESSAGE_MARKER_START.Length);
 
 			// Add header json values
 			JObject doc = new JObject();
 			SerializeHeaderMapToJson(HeaderMap, ref doc);
-			string json = doc.ToString();
-			strMessage += json;
+			byte[] jsonBytes = UTF8Encoding.UTF8.GetBytes(doc.ToString());
+			Array.Resize(ref buffer, buffer.Length + jsonBytes.Length);
+			System.Buffer.BlockCopy(jsonBytes, 0, buffer, 0, jsonBytes.Length);
 
 			// Add header end marker
-			strMessage += MESSAGE_MARKER_END;
-
-			// Convert header to vector
-			buffer = UTF8Encoding.UTF8.GetBytes(strMessage);
+			Array.Resize(ref buffer, buffer.Length + MESSAGE_MARKER_END.Length);
+			System.Buffer.BlockCopy(MESSAGE_MARKER_END, 0, buffer, 0, MESSAGE_MARKER_END.Length);
 
 			// Append message buffer data
-			System.Buffer.BlockCopy(Data, 0, buffer, buffer.Length, Data.Length);
+			Array.Resize(ref buffer, buffer.Length + Data.Length);
+			System.Buffer.BlockCopy(Data, 0, buffer, 0, Data.Length);
 		}
 
 		// Convert header map to json
