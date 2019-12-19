@@ -227,7 +227,7 @@ namespace MessagesLibrary
 					if (posEnd < buffer.Length)
 					{
 						byte[] data = new byte[buffer.Length - posEnd];
-						buffer.CopyTo(data, posEnd);
+						System.Buffer.BlockCopy(buffer, posEnd, data, 0, data.Length);
 						msg.SetData(data);
 					}
 				#if DEBUG

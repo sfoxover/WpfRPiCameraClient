@@ -126,5 +126,28 @@ namespace Unittest
             uri = uris[0].ToString();
             Assert.True(uris.Count == 1 && uri == "tcp://127.0.0.1:5563", "TestJsonConfigFile failed publisher test.");
         }
+
+        // Test serialization with data buffer
+        [Test]
+        public void TestSerializeWithBufferMatches()
+        {
+            var values = new Dictionary<string, object>();
+            values["state"] = true;
+            values["sensor"] = "motion";
+            Message message1 = Message.CreateMessageFromJson("unitTest", Message.MessageType.MotionSensor, values);
+            byte[] buffer = { 0x61, 0x62, 0x63 };
+            message1.SetData(buffer);
+
+            message1.SerializeMessageToBuffer(out byte[] data);
+            Message message2 = Message.DeserializeBufferToMessage(data);
+
+            Assert.True(message1 == message2, "TestSerializeWithBufferMatches failed == operator test.");
+
+            // Add custom header data
+            message1.SetHeaderMapValue("is_key_frame", true);
+            message1.SerializeMessageToBuffer(out byte[] data2);
+            message2 = Message.DeserializeBufferToMessage(data2);
+            Assert.True(message1 == message2, "TestSerializeWithBufferMatches failed == operator test.");
+        }
     }
 }
