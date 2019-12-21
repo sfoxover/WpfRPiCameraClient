@@ -4,10 +4,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RPiCameraClient", "RPiCameraClient\RPiCameraClient.csproj", "{B803ADD1-8728-4151-9266-963822DECFB9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6605EF93-CDE8-4E93-8A05-23BAB27D9F0F} = {6605EF93-CDE8-4E93-8A05-23BAB27D9F0F}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagesLibrary", "MessagesLibrary\MessagesLibrary.csproj", "{6605EF93-CDE8-4E93-8A05-23BAB27D9F0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagesLibrary", "MessagesLibrary\MessagesLibrary.csproj", "{6605EF93-CDE8-4E93-8A05-23BAB27D9F0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unittest", "Unittest\Unittest.csproj", "{74D77A9E-148D-4624-A0C5-6A2ECA99E40B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unittest", "Unittest\Unittest.csproj", "{74D77A9E-148D-4624-A0C5-6A2ECA99E40B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

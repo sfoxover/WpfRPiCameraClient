@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MessagesLibrary;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,36 +16,86 @@ namespace RPiCameraClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static AutoResetEvent WaitEvent = new AutoResetEvent(false);
-
         // Calculate FPS
         private volatile Int32 FramesPerSec = 0;
+
+        // ZeroMQ message subscription
+        ReadMessages Reader { get; set; }      
 
         public MainWindow()
         {
             InitializeComponent();
+
+            ReadMessages();
+
+            CalculateFPS();
+        }
+
+        private void ReadMessages()
+        {
+            Reader = new ReadMessages();
+            Reader.MessageCallback = NewMessageCallback;
+            Reader.Start();
+        }
+
+        // Calculate FPS
+        void CalculateFPS()
+        {
+            // Calculate FPS 
+            var timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 1);
+            timer.Tick += (s, args) =>
+            {
+                timer.IsEnabled = true;
+                LabelFPS.Content = $"Frames per second: {FramesPerSec}";
+                FramesPerSec = 0;
+            };
+            timer.Start();
         }
 
         // Clean up 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            WaitEvent.Set();
+            Reader.Stop();
         }
-             
 
-        private BitmapImage LoadImage(Stream stream)
+        public void NewMessageCallback(Message msg)
         {
-            // assumes that the streams position is at the beginning
-            // for example if you use a memory stream you might need to point it to 0 first
-            var image = new BitmapImage();
+            switch(msg.GetMessageType())
+            {
+                case Message.MessageType.OpenCVMatFrame:
+                    {
+                        byte[] imgBuffer = msg.GetData();
+                        var image = LoadImage();
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            if (image != null)
+                            {
+                                VideoImg.Source = image;
+                            }
+                        }));
+                        break;
+                    }
+                default:
+                    {
+                        Debug.Assert(false, "Unhandled message type.");
+                        break;
+                    }
+            }
+        }
 
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.StreamSource = stream;
-            image.EndInit();
-
-            image.Freeze();
-            return image;
+        private BitmapSource LoadImage(int width, int height, int frameStep, byte[] imgBuffer)
+        {
+            try
+            {
+                var image = BitmapImage.Create(width, height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, System.Windows.Media.Imaging.BitmapPalettes.WebPalette, imgBuffer, frameStep);
+                return image;
+            }
+            catch(Exception ex)
+            {
+                Debug.Assert(false, $"LoadImage failed {ex.Message}.");
+                return null;
+            }
         }     
     }
 }

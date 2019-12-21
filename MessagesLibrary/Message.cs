@@ -28,7 +28,7 @@ namespace MessagesLibrary
 		public enum MessageType
 		{
 			Unknown,
-			VideoCam,
+			OpenCVMatFrame,
 			VideoSample,
 			FaceDetection,
 			Audio,
@@ -137,8 +137,15 @@ namespace MessagesLibrary
 		// Get Set for _type
 		public MessageType GetMessageType()
 		{
-			MessageType type = (MessageType)HeaderMap["type"];
-			return type;
+			try
+			{
+				var type = Convert.ToInt64(HeaderMap["type"]);
+				return (MessageType)type;
+			}
+			catch(Exception ex)
+			{
+				return MessageType.Unknown;
+			}
 		}
 
 		public void SetMessageType(MessageType value)
