@@ -35,12 +35,13 @@ namespace MessagesLibrary
 
         async Task ReadMessagesAsync()
         {
-            string uri = "tcp://10.0.0.4:5563";
+            string uri = "tcp://127.0.0.1:5563";
             using (var subscriber = new SubscriberSocket(uri))
             {
                 subscriber.Options.ReceiveHighWatermark = 1000;
                 subscriber.Connect(uri);
-                subscriber.Subscribe("OpenCVMatFrame");
+                subscriber.Subscribe("VideoCam");
+                subscriber.Subscribe("VideoSample");
 
                 byte[] tempBuffer = null;
                 do 

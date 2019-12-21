@@ -11,7 +11,7 @@
         <StackPanel Orientation="Vertical" Width="Auto" Height="Auto">
             <Label Name="LabelFPS" Content="Frames per second:"/>
             <Label Name="LabelSensors" Content=""/>
-            <Image Name="VideoImg" Margin="10,10,10,10"/>
+            <Image Name="VideoImg" Margin="10,10,10,10" MinHeight="100" MinWidth="100"/>
         </StackPanel>
     </Grid>
 </Window>

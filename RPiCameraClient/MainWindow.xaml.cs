@@ -33,9 +33,12 @@ namespace RPiCameraClient
 
         private void ReadMessages()
         {
-            Reader = new ReadMessages();
-            Reader.MessageCallback = NewMessageCallback;
-            Reader.Start();
+            Task.Run(() =>
+            {
+                Reader = new ReadMessages();
+                Reader.MessageCallback = NewMessageCallback;
+                Reader.Start();
+            });
         }
 
         // Calculate FPS
@@ -56,7 +59,10 @@ namespace RPiCameraClient
         // Clean up 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Reader.Stop();
+            if (Reader != null)
+            {
+                Reader.Stop();
+            }
         }
 
         public void NewMessageCallback(Message msg)
@@ -65,7 +71,9 @@ namespace RPiCameraClient
             {
                 case Message.MessageType.OpenCVMatFrame:
                     {
+                        FramesPerSec++;
                         var image = LoadImage(msg);
+                        image.Freeze();
                         Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             if (image != null)
@@ -83,14 +91,15 @@ namespace RPiCameraClient
             }
         }
 
+        // Convert message buffer cv::Mat image to Bgr24 bitmap source
         private BitmapSource LoadImage(Message msg)
         {
             try
             {
-                int fps = (int)msg.HeaderMap["fps"];
-                int width = (int)msg.HeaderMap["width"];
-                int height = (int)msg.HeaderMap["height"];
-                int frameStep = (int)msg.HeaderMap["step"];
+                int fps = Convert.ToInt32(msg.HeaderMap["fps"]);
+                int width = Convert.ToInt32(msg.HeaderMap["width"]);
+                int height = Convert.ToInt32(msg.HeaderMap["height"]);
+                int frameStep = Convert.ToInt32(msg.HeaderMap["step"]);
                 byte[] imgBuffer = msg.GetData();
 
                 var image = BitmapImage.Create(width, height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, System.Windows.Media.Imaging.BitmapPalettes.WebPalette, imgBuffer, frameStep);
