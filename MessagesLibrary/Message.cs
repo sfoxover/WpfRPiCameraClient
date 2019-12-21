@@ -37,7 +37,7 @@ namespace MessagesLibrary
 		};
 
 		// A map of any types that gets converted to and from json
-		Dictionary<string, object> HeaderMap;
+		public Dictionary<string, object> HeaderMap;
 
 		// Message payload
 		byte[] Data;

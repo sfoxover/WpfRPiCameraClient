@@ -65,8 +65,7 @@ namespace RPiCameraClient
             {
                 case Message.MessageType.OpenCVMatFrame:
                     {
-                        byte[] imgBuffer = msg.GetData();
-                        var image = LoadImage();
+                        var image = LoadImage(msg);
                         Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             if (image != null)
@@ -84,10 +83,16 @@ namespace RPiCameraClient
             }
         }
 
-        private BitmapSource LoadImage(int width, int height, int frameStep, byte[] imgBuffer)
+        private BitmapSource LoadImage(Message msg)
         {
             try
             {
+                int fps = (int)msg.HeaderMap["fps"];
+                int width = (int)msg.HeaderMap["width"];
+                int height = (int)msg.HeaderMap["height"];
+                int frameStep = (int)msg.HeaderMap["step"];
+                byte[] imgBuffer = msg.GetData();
+
                 var image = BitmapImage.Create(width, height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, System.Windows.Media.Imaging.BitmapPalettes.WebPalette, imgBuffer, frameStep);
                 return image;
             }
