@@ -29,10 +29,10 @@ namespace MessagesLibrary
 		{
 			Unknown,
 			OpenCVMatFrame,
-			VideoSample,
 			FaceDetection,
 			Audio,
 			MotionSensor,
+			ServerCommand,
 			Other
 		};
 

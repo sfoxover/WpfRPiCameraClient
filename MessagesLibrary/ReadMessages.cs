@@ -35,7 +35,7 @@ namespace MessagesLibrary
 
         async Task ReadMessagesAsync()
         {
-            string uri = "tcp://127.0.0.1:5563";
+            string uri = Settings.Instance.SubscribeUri;
             using (var subscriber = new SubscriberSocket(uri))
             {
                 subscriber.Options.ReceiveHighWatermark = 1000;
