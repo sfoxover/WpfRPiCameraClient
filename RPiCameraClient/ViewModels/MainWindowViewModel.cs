@@ -17,35 +17,55 @@ namespace RPiCameraClient.ViewModels
         public bool FaceAiOff
         {
             get { return _faceAiOff; }
-            set { SetProperty(ref _faceAiOff, value); UpdateFaceAIDetection("Off"); }
+            set 
+            { 
+                if(SetProperty(ref _faceAiOff, value) && _faceAiOff)
+                    UpdateFaceAIDetection("Off"); 
+            }
         }
 
         private bool _faceAiOpenCV = false;
         public bool FaceAiOpenCV
         {
             get { return _faceAiOpenCV; }
-            set { SetProperty(ref _faceAiOpenCV, value); UpdateFaceAIDetection("OpenCV"); }
+            set 
+            { 
+                if(SetProperty(ref _faceAiOpenCV, value) && _faceAiOpenCV)
+                    UpdateFaceAIDetection("OpenCV"); 
+            }
         }
 
         private bool _faceAiDnn = false;
         public bool FaceAiDnn
         {
             get { return _faceAiDnn; }
-            set { SetProperty(ref _faceAiDnn, value); UpdateFaceAIDetection("Dnn"); }
+            set 
+            { 
+                if(SetProperty(ref _faceAiDnn, value) && _faceAiDnn)
+                    UpdateFaceAIDetection("Dnn"); 
+            }
         }
 
         private bool _faceAiMod = false;
         public bool FaceAiMod
         {
             get { return _faceAiMod; }
-            set { SetProperty(ref _faceAiMod, value); UpdateFaceAIDetection("Mod"); }
+            set 
+            { 
+                if(SetProperty(ref _faceAiMod, value) && _faceAiMod)
+                    UpdateFaceAIDetection("Mod"); 
+            }
         }
 
         private bool _faceAiHog = false;
         public bool FaceAiHog
         {
             get { return _faceAiHog; }
-            set { SetProperty(ref _faceAiHog, value); UpdateFaceAIDetection("Hog"); }
+            set 
+            { 
+                if(SetProperty(ref _faceAiHog, value) && _faceAiHog)
+                    UpdateFaceAIDetection("Hog"); 
+            }
         }
 
         public MainWindowViewModel(Snackbar snackbar)

@@ -139,7 +139,7 @@ namespace MessagesLibrary
 		{
 			try
 			{
-				var type = Convert.ToInt64(HeaderMap["type"]);
+				var type = Convert.ToInt32(HeaderMap["type"]);
 				return (MessageType)type;
 			}
 			catch(Exception ex)
@@ -150,7 +150,7 @@ namespace MessagesLibrary
 
 		public void SetMessageType(MessageType value)
 		{
-			HeaderMap["type"] = value;
+			HeaderMap["type"] = (Int32)value;
 		}
 
 		// Get Set for _topic
@@ -186,7 +186,7 @@ namespace MessagesLibrary
 			msg.SetTopic(topic);
 			msg.SetMessageType(type);
 			msg.SetMicroTime();
-			msg.HeaderMap["map_payload"] = items;
+			msg.HeaderMap.AddDictionary(items);
 			return msg;
 		}
 

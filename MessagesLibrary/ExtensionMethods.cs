@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace MessagesLibrary
@@ -18,6 +19,16 @@ namespace MessagesLibrary
             Array.Resize(ref result, endPos + appendData.Length);
             System.Buffer.BlockCopy(appendData, 0, result, endPos, appendData.Length);
             return result;
+        }
+
+        // Apend dictionary
+        public static void AddDictionary<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection)
+        {
+            foreach (var item in collection)
+            {
+                Debug.Assert(!source.ContainsKey(item.Key));
+                source.Add(item.Key, item.Value);
+            }
         }
     }
 }
