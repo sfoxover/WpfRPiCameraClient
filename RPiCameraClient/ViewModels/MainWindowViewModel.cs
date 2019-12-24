@@ -2,6 +2,7 @@
 using MessagesLibrary;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,9 @@ namespace RPiCameraClient.ViewModels
     {
         // Popup message window
         private Snackbar MainWndSnackbar = null;
+
+        // Allow changes to AI method
+        private volatile bool AllowAIUpdates = true;
 
         // Face detection AI values
         private bool _faceAiOff = true;
@@ -71,22 +75,64 @@ namespace RPiCameraClient.ViewModels
         public MainWindowViewModel(Snackbar snackbar)
         {
             MainWndSnackbar = snackbar;
+            GetCurrentFaceAIDetection();
         }
 
-        void UpdateFaceAIDetection(string method)
+        // Get the current server settings for face detection AI
+        void GetCurrentFaceAIDetection()
         {
             Task.Run(() =>
             {
                 // Create a message payload
                 var items = new Dictionary<string, object>();
-                items["Command"] = "SetAIMethod";
-                items["Value"] = method;
+                items["Command"] = "GetAIMethod";
                 var msg = Message.CreateMessageFromJson("ServerCommand", Message.MessageType.ServerCommand, items);
 
                 // Send command
                 var cmd = new SendCommand();
-                bool bOK = cmd.SendCommandMessage(msg, out string error);
+                bool bOK = cmd.SendCommandMessage(ref msg, out string error);
+                Debug.Assert(bOK, error);
+                if(bOK)
+                {
+                    msg.GetHeaderMapValue("AIMethod", out object value);
+                    string method = Convert.ToString(value);
+                    AllowAIUpdates = false;
+
+                    // Set correct choice
+                    if (method == "Off")
+                        FaceAiOff = true;
+                    else if (method == "OpenCV")
+                        FaceAiOpenCV = true;
+                    else if (method == "Dnn")
+                        FaceAiDnn = true;
+                    else if (method == "Mod")
+                        FaceAiMod = true;
+                    else if (method == "Hog")
+                        FaceAiHog = true;
+                    AllowAIUpdates = true;
+                }
             });
+        }
+
+        // Update AI detection method on server
+        void UpdateFaceAIDetection(string method)
+        {
+            if (AllowAIUpdates)
+            {
+                Task.Run(() =>
+                {
+                    // Create a message payload
+                    var items = new Dictionary<string, object>();
+                    items["Command"] = "SetAIMethod";
+                    items["Value"] = method;
+                    var msg = Message.CreateMessageFromJson("ServerCommand", Message.MessageType.ServerCommand, items);
+
+                    // Send command
+                    var cmd = new SendCommand();
+                    bool bOK = cmd.SendCommandMessage(ref msg, out string error);
+                    Debug.Assert(bOK, error);
+                });
+            }
         }
     }
 }

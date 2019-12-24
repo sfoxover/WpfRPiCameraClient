@@ -144,6 +144,7 @@ namespace MessagesLibrary
 			}
 			catch(Exception ex)
 			{
+				Debug.WriteLine($"GetMessageType exception {ex.Message}");
 				return MessageType.Unknown;
 			}
 		}
