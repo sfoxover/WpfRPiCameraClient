@@ -3,6 +3,7 @@ using NetMQ;
 using NetMQ.Sockets;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace MessagesLibrary
 {
@@ -15,9 +16,13 @@ namespace MessagesLibrary
         public delegate void NewMessageDelegate(Message msg);
         public NewMessageDelegate MessageCallback { get; set; }
 
-        public ReadMessages()
+        // Topics to subscribe to
+        public List<string> Topics { get; set; }
+
+        public ReadMessages(List<string> topics)
         {
             MessageCallback = null;
+            Topics = topics;
         }
 
         public void Start()
@@ -40,8 +45,10 @@ namespace MessagesLibrary
             {
                 subscriber.Options.ReceiveHighWatermark = 1000;
                 subscriber.Connect(uri);
-                subscriber.Subscribe("VideoCam");
-                subscriber.Subscribe("VideoSample");
+                foreach (var topic in Topics)
+                {
+                    subscriber.Subscribe(topic);
+                }
 
                 byte[] tempBuffer = null;
                 do 
