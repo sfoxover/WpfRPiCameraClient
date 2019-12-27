@@ -1,6 +1,7 @@
 ﻿using MessagesLibrary;
 using RPiCameraClient.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -49,7 +50,11 @@ namespace RPiCameraClient
         {
             Task.Run(() =>
             {
-                Reader = new ReadMessages();
+                List<string> topics = new List<string>();
+                topics.Add(Settings.Instance.VideoCamTopic);
+                topics.Add(Settings.Instance.VideoSampleTopic);
+                topics.Add(Settings.Instance.FaceDetectTopic);
+                Reader = new ReadMessages(topics);
                 Reader.MessageCallback = NewMessageCallback;
                 Reader.Start();
             });
@@ -86,13 +91,13 @@ namespace RPiCameraClient
             {
                 case Message.MessageType.OpenCVMatFrame:
                     {
-                        FramesPerSec++;
                         var image = LoadImage(msg);
                         image.Freeze();
                         Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             if (image != null)
                             {
+                                FramesPerSec++;
                                 VideoImg.Source = image;
                             }
                         }));

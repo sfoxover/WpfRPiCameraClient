@@ -16,7 +16,7 @@ namespace RPiCameraClient.ViewModels
         // Allow changes to AI method
         private volatile bool AllowAIUpdates = true;
 
-        // Face detection AI values
+        // Face detection AI values: Off, OpenCV, Dnn, Mod, Hog
         private bool _faceAiOff = true;
         public bool FaceAiOff
         {
