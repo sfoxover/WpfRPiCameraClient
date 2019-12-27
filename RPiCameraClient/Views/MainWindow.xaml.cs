@@ -103,6 +103,19 @@ namespace RPiCameraClient
                         }));
                         break;
                     }
+                case Message.MessageType.FaceDetection:
+                    {
+                        var image = LoadImage(msg);
+                        image.Freeze();
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            if (image != null)
+                            {
+                                FaceDetectionImg.Source = image;
+                            }
+                        }));
+                        break;
+                    }
                 default:
                     {
                         Debug.Assert(false, "Unhandled message type.");
@@ -116,7 +129,6 @@ namespace RPiCameraClient
         {
             try
             {
-                int fps = Convert.ToInt32(msg.HeaderMap["fps"]);
                 int width = Convert.ToInt32(msg.HeaderMap["width"]);
                 int height = Convert.ToInt32(msg.HeaderMap["height"]);
                 int frameStep = Convert.ToInt32(msg.HeaderMap["step"]);
