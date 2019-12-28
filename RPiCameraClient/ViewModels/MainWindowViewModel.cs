@@ -91,7 +91,6 @@ namespace RPiCameraClient.ViewModels
                 // Send command
                 var cmd = new SendCommand();
                 bool bOK = cmd.SendCommandMessage(ref msg, out string error);
-                Debug.Assert(bOK, error);
                 if(bOK)
                 {
                     msg.GetHeaderMapValue("AIMethod", out object value);

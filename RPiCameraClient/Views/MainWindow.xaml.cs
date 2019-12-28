@@ -87,40 +87,49 @@ namespace RPiCameraClient
         // Call back with new message object
         public void NewMessageCallback(Message msg)
         {
-            switch(msg.GetMessageType())
+            try
             {
-                case Message.MessageType.OpenCVMatFrame:
-                    {
-                        var image = LoadImage(msg);
-                        image.Freeze();
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                switch (msg.GetMessageType())
+                {
+                    case Message.MessageType.OpenCVMatFrame:
                         {
-                            if (image != null)
+                            var image = LoadImage(msg);
+                            image.Freeze();
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                FramesPerSec++;
-                                VideoImg.Source = image;
-                            }
-                        }));
-                        break;
-                    }
-                case Message.MessageType.FaceDetection:
-                    {
-                        var image = LoadImage(msg);
-                        image.Freeze();
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                                if (image != null)
+                                {
+                                    FramesPerSec++;
+                                    VideoImg.Source = image;
+                                }
+                            }));
+                            break;
+                        }
+                    case Message.MessageType.FaceDetection:
                         {
-                            if (image != null)
+                            var image = LoadImage(msg);
+                            image.Freeze();
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                FaceDetectionImg.Source = image;
-                            }
-                        }));
-                        break;
-                    }
-                default:
-                    {
-                        Debug.Assert(false, "Unhandled message type.");
-                        break;
-                    }
+                                if (image != null)
+                                {
+                                    FaceDetectionImg.Source = image;
+                                }
+                                msg.GetHeaderMapValue("imagesPerSec", out object value);
+                                LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(value)}";
+                            }));
+                            break;
+                        }
+                    default:
+                        {
+                            Debug.Assert(false, "Unhandled message type.");
+                            break;
+                        }
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine($"NewMessageCallback exception {ex.Message}");
             }
         }
 
