@@ -1,0 +1,6 @@
+[submodule "Imports/MessagesLib"]
+	path = Imports/MessagesLib
+	url = https://github.com/sfoxover/MessagesLib.git
+[submodule "Imports/JsoncppLib"]
+	path = Imports/JsoncppLib
+	url = https://github.com/sfoxover/JsoncppLib.git

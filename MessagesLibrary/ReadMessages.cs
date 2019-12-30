@@ -4,6 +4,7 @@ using NetMQ.Sockets;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MessagesLibrary
 {
@@ -27,6 +28,8 @@ namespace MessagesLibrary
 
         public void Start()
         {
+            var test = new SocketLibrary.Class1();
+
             using (var runtime = new NetMQRuntime())
             {
                 runtime.Run(ReadMessagesAsync());
@@ -60,6 +63,7 @@ namespace MessagesLibrary
                         var msg = Message.DeserializeBufferToMessage(tempBuffer);
                         tempBuffer = null;
                         MessageCallback?.Invoke(msg);
+                        Debug.WriteLine("Got frame");
                     }
                 }
                 while (WaitEvent.WaitOne(10) == false);

@@ -34,14 +34,17 @@ namespace MessagesLibrary
 					{
 						bOK = client.TryReceiveFrameBytes(new TimeSpan(0, 0, 5), out byte[] resultBuffer, out bool more);
 						Debug.Assert(!more, "Errro, SendCommandMessage reply has more data to receive.");
-						msg = Message.DeserializeBufferToMessage(resultBuffer);
+						if (bOK)
+						{
+							msg = Message.DeserializeBufferToMessage(resultBuffer);
+						}
 					}
 				}
 				return bOK;
 			}
 			catch(Exception ex)
 			{
-				error = $"Settings::Initialize error {ex.Message}";
+				error = $"SendCommandMessage error {ex.Message}";
 				Debug.WriteLine(error);
 			}
 			return false;
