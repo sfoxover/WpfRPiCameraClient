@@ -22,4 +22,8 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)Imports\ZeroMQ_libs\x64\$(ConfigurationName)\bin\*.dll&quot; &quot;$(ProjectDir)$(OutDir)libzmq.dll*&quot; /y" />
+  </Target>
+
 </Project>

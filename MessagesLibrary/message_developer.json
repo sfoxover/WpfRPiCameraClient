@@ -1,8 +1,8 @@
 ﻿{
   "PublisherEndpoint": "tcp://*:5563",
-  "SubscriberEndpoint": "tcp://10.0.0.27:5563",
+  "SubscriberEndpoint": "tcp://127.0.0.1:5563",
   "CmdServerEndpoint": "tcp://*:5564",
-  "CmdClientEndpoint": "tcp://10.0.0.27:5564",
+  "CmdClientEndpoint": "tcp://127.0.0.1:5564",
   "VideoSettings": {
     "StreamSampleVideo": true,
     "SampleVideoName": "Serenity.mp4",

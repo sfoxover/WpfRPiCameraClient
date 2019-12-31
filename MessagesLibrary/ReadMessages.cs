@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using ZeroMQ;
+using System.Diagnostics;
 
 namespace MessagesLibrary
 {
@@ -49,14 +50,21 @@ namespace MessagesLibrary
 
                 do
                 {
-                    using (ZFrame reply = subscriber.ReceiveFrame())
+                    try
                     {
-                        byte[] tempBuffer = reply.Read();
-                        var msg = Message.DeserializeBufferToMessage(tempBuffer);
-                        MessageCallback?.Invoke(msg);
+                        using (ZFrame reply = subscriber.ReceiveFrame())
+                        {
+                            byte[] tempBuffer = reply.Read();
+                            var msg = Message.DeserializeBufferToMessage(tempBuffer);
+                            MessageCallback?.Invoke(msg);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        Debug.WriteLine($"ReadMessagesThread Exception {ex.Message}");
                     }
                 }
-                while (WaitEvent.WaitOne(10) == false);
+                while (WaitEvent.WaitOne(1) == false);
             }
         }
     }

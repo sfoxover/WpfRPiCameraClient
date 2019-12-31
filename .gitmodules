@@ -1,0 +1,6 @@
+[submodule "imports/clrzmq4"]
+	path = imports/clrzmq4
+	url = https://github.com/sfoxover/clrzmq4.git
+[submodule "imports/ZeroMQ_libs"]
+	path = imports/ZeroMQ_libs
+	url = https://github.com/sfoxover/ZeroMQ_libs.git
