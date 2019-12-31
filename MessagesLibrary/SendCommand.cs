@@ -1,9 +1,8 @@
-﻿using NetMQ;
-using NetMQ.Sockets;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ZeroMQ;
 
 namespace MessagesLibrary
 {
@@ -25,17 +24,18 @@ namespace MessagesLibrary
 				msg.SerializeMessageToBuffer(out byte[] buffer);
 
 				// Send to command server endpoint
-				using (var client = new RequestSocket())
+				using (var client = new ZSocket(ZSocketType.REQ))
 				{
+					client.SendTimeout = new TimeSpan(0, 0, 5);
+					client.ReceiveTimeout = new TimeSpan(0, 0, 5);
 					client.Connect(Settings.Instance.CmdClientUri);
-					bOK = client.TrySendFrame(new TimeSpan(0, 0, 5), buffer);
-
+					ZFrame frame = new ZFrame(buffer);
+					bOK = client.Send(frame, out ZError zerror);
 					if (bOK)
 					{
-						bOK = client.TryReceiveFrameBytes(new TimeSpan(0, 0, 5), out byte[] resultBuffer, out bool more);
-						Debug.Assert(!more, "Errro, SendCommandMessage reply has more data to receive.");
-						if (bOK)
+						using (ZFrame reply = client.ReceiveFrame())
 						{
+							byte[] resultBuffer = reply.Read();
 							msg = Message.DeserializeBufferToMessage(resultBuffer);
 						}
 					}
@@ -44,7 +44,7 @@ namespace MessagesLibrary
 			}
 			catch(Exception ex)
 			{
-				error = $"SendCommandMessage error {ex.Message}";
+				error = $"Settings::Initialize error {ex.Message}";
 				Debug.WriteLine(error);
 			}
 			return false;

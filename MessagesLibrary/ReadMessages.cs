@@ -1,10 +1,8 @@
 ﻿using System;
-using NetMQ;
-using NetMQ.Sockets;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
-using System.Diagnostics;
+using ZeroMQ;
 
 namespace MessagesLibrary
 {
@@ -28,12 +26,7 @@ namespace MessagesLibrary
 
         public void Start()
         {
-            var test = new SocketLibrary.Class1();
-
-            using (var runtime = new NetMQRuntime())
-            {
-                runtime.Run(ReadMessagesAsync());
-            }           
+            Task.Run(() => ReadMessagesThread());
         }
 
         public void Stop()
@@ -41,29 +34,26 @@ namespace MessagesLibrary
             WaitEvent.Set();
         }
 
-        async Task ReadMessagesAsync()
+        void ReadMessagesThread()
         {
             string uri = Settings.Instance.SubscribeUri;
-            using (var subscriber = new SubscriberSocket(uri))
+
+            using (var subscriber = new ZSocket(ZSocketType.SUB))
             {
-                subscriber.Options.ReceiveHighWatermark = 1000;
+                subscriber.ReceiveTimeout = new TimeSpan(0, 0, 5);
                 subscriber.Connect(uri);
                 foreach (var topic in Topics)
                 {
                     subscriber.Subscribe(topic);
                 }
 
-                byte[] tempBuffer = null;
-                do 
-                { 
-                    var (buffer, more) = await subscriber.ReceiveFrameBytesAsync();
-                    tempBuffer = tempBuffer.AppendBytes(buffer);
-                    if (!more)
+                do
+                {
+                    using (ZFrame reply = subscriber.ReceiveFrame())
                     {
+                        byte[] tempBuffer = reply.Read();
                         var msg = Message.DeserializeBufferToMessage(tempBuffer);
-                        tempBuffer = null;
                         MessageCallback?.Invoke(msg);
-                        Debug.WriteLine("Got frame");
                     }
                 }
                 while (WaitEvent.WaitOne(10) == false);
