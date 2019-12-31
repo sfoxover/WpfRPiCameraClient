@@ -48,6 +48,7 @@
         <!-- Face detection information -->
         <StackPanel Orientation="Vertical" Width="Auto" Height="Auto" Grid.Row="1" Grid.Column="1">
             <Label Name="LabelFaceDetectFPS" Content="Face detection frames per second:"/>
+            <Label Name="LabelCpuUsage" Content="Service CPU usage:"/>
         </StackPanel>
 
         <!-- Face detection frames -->

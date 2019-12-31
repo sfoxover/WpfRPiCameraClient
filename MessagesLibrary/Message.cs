@@ -33,6 +33,7 @@ namespace MessagesLibrary
 			Audio,
 			MotionSensor,
 			ServerCommand,
+			ProfilingData,
 			Other
 		};
 

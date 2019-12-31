@@ -54,6 +54,7 @@ namespace RPiCameraClient
                 topics.Add(Settings.Instance.VideoCamTopic);
                 topics.Add(Settings.Instance.VideoSampleTopic);
                 topics.Add(Settings.Instance.FaceDetectTopic);
+                topics.Add(Settings.Instance.ProfilingTopic);
                 Reader = new ReadMessages(topics);
                 Reader.MessageCallback = NewMessageCallback;
                 Reader.Start();
@@ -115,8 +116,18 @@ namespace RPiCameraClient
                                 {
                                     FaceDetectionImg.Source = image;
                                 }
-                                msg.GetHeaderMapValue("imagesPerSec", out object value);
-                                LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(value)}";
+                            }));
+                            break;
+                        }
+                    case Message.MessageType.ProfilingData:
+                        {
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
+                            {
+                                msg.GetHeaderMapValue("AiImagesPerSec", out object fps);
+                                LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(fps)}";
+
+                                msg.GetHeaderMapValue("CpuUsage", out object cpu);
+                                LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpu)}%";
                             }));
                             break;
                         }

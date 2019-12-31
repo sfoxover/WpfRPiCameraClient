@@ -39,6 +39,7 @@ namespace MessagesLibrary
         public string VideoSampleTopic { get; set; }
         public string FaceDetectTopic { get; set; }
         public string MotionSensor { get; set; }
+        public string ProfilingTopic { get; set; }
 
         // Private for singleton
         private Settings()
@@ -78,6 +79,7 @@ namespace MessagesLibrary
                 VideoSampleTopic = (string)settingsMap["VideoSampleTopic"];
                 FaceDetectTopic = (string)settingsMap["FaceDetectTopic"];
                 MotionSensor = (string)settingsMap["MotionSensorTopic"];
+                ProfilingTopic = (string)settingsMap["ProfilingTopic"];
 
                 return true;
             }
