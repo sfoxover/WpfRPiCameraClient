@@ -27,14 +27,16 @@ namespace MessagesLibrary
 		// Suported message types
 		public enum MessageType
 		{
-			Unknown,
-			OpenCVMatFrame,
-			FaceDetection,
-			Audio,
-			MotionSensor,
-			ServerCommand,
-			ProfilingData,
-			Other
+			Unknown = 0,
+			OpenCVMatFrame = 1,
+			JpegFrame = 1 << 1,
+			FaceDetection = 1 << 2,
+			Video = 1 << 3,
+			Audio = 1 << 4,
+			MotionSensor = 1 << 5,
+			ServerCommand = 1 << 6,
+			ProfilingData = 1 << 7,
+			Other = 1 << 8
 		};
 
 		// A map of any types that gets converted to and from json
@@ -145,23 +147,23 @@ namespace MessagesLibrary
 		}
 
 		// Get Set for _type
-		public MessageType GetMessageType()
+		public Int32 GetMessageType()
 		{
 			try
 			{
 				var type = Convert.ToInt32(HeaderMap["type"]);
-				return (MessageType)type;
+				return type;
 			}
 			catch(Exception ex)
 			{
 				Debug.WriteLine($"GetMessageType exception {ex.Message}");
-				return MessageType.Unknown;
+				return 0;
 			}
 		}
 
-		public void SetMessageType(MessageType value)
+		public void SetMessageType(Int32 value)
 		{
-			HeaderMap["type"] = (Int32)value;
+			HeaderMap["type"] = value;
 		}
 
 		// Get Set for _topic
@@ -188,39 +190,11 @@ namespace MessagesLibrary
 			HeaderMap["time_stamp"] = value;
 		}
 
-		// Create message from key value pairs
-		public static Message CreateMessageFromJson(string topic, MessageType type, Dictionary<string, object> items)
-		{
-			var msg = new Message();
-
-			// Set topic and type
-			msg.SetTopic(topic);
-			msg.SetMessageType(type);
-			msg.SetMicroTime();
-			msg.HeaderMap.AddDictionary(items);
-			return msg;
-		}
-
-		// Set message values including data buffer
-		public static Message CreateMessageFromBuffer(string topic, MessageType type, byte[] buffer)
-		{
-			Message msg = new Message();
-
-			// Set topic and type
-			msg.SetTopic(topic);
-			msg.SetMessageType(type);
-			msg.SetMicroTime();
-
-			// Copy to buffer
-			msg.SetData(buffer);
-			return msg;
-		}
-
 		// Deserialize buffer into message properties, topic + magic marker + message json + marker end + data
 		public static Message DeserializeBufferToMessage(byte[] buffer)
 		{
 			Message msg = new Message();
-			msg.SetMessageType(MessageType.Unknown);
+			msg.SetMessageType((Int32)MessageType.Unknown);
 
 			// Search for start marker after topic
 			var markerStart = Helpers.FindInArray(buffer, MESSAGE_MARKER_START);

@@ -62,7 +62,7 @@ namespace Unittest
             var values = new Dictionary<string, object>();
             values["state"] = true;
             values["sensor"] = "motion";
-            Message message1 = Message.CreateMessageFromJson("unitTest", Message.MessageType.MotionSensor, values);
+            Message message1 = MessageFactory.Create("unitTest", (Int32)Message.MessageType.MotionSensor, values);
 
             message1.SerializeMessageToBuffer(out byte[] data);
             Message message2 = Message.DeserializeBufferToMessage(data);
@@ -83,7 +83,7 @@ namespace Unittest
             var values = new Dictionary<string, object>();
             values["state"] = false;
             values["sensor"] = "motion";
-            Message message1 = Message.CreateMessageFromJson("unitTest", Message.MessageType.MotionSensor, values);
+            Message message1 = MessageFactory.Create("unitTest", (Int32)Message.MessageType.MotionSensor, values);
 
             // Add custom header data
             message1.SetHeaderMapValue("is_key_frame", true);
@@ -134,7 +134,7 @@ namespace Unittest
             var values = new Dictionary<string, object>();
             values["state"] = true;
             values["sensor"] = "motion";
-            Message message1 = Message.CreateMessageFromJson("unitTest", Message.MessageType.MotionSensor, values);
+            Message message1 = MessageFactory.Create("unitTest", (Int32)Message.MessageType.MotionSensor, values);
             byte[] buffer = { 0x61, 0x62, 0x63 };
             message1.SetData(buffer);
 

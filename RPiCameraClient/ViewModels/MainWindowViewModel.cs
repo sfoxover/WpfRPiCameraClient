@@ -86,7 +86,7 @@ namespace RPiCameraClient.ViewModels
                 // Create a message payload
                 var items = new Dictionary<string, object>();
                 items["Command"] = "GetAIMethod";
-                var msg = Message.CreateMessageFromJson("ServerCommand", Message.MessageType.ServerCommand, items);
+                var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
 
                 // Send command
                 var cmd = new SendCommand();
@@ -124,7 +124,7 @@ namespace RPiCameraClient.ViewModels
                     var items = new Dictionary<string, object>();
                     items["Command"] = "SetAIMethod";
                     items["Value"] = method;
-                    var msg = Message.CreateMessageFromJson("ServerCommand", Message.MessageType.ServerCommand, items);
+                    var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
 
                     // Send command
                     var cmd = new SendCommand();

@@ -98,55 +98,53 @@ namespace RPiCameraClient
                 // Used to calculate bandwidth used
                 BytesPerSec += msg.GetDataSize();
 
-                switch (msg.GetMessageType())
+                Int32 type = msg.GetMessageType();
+
+                if (((Message.MessageType)type & Message.MessageType.Video) == Message.MessageType.Video)
                 {
-                    case Message.MessageType.OpenCVMatFrame:
-                        {
-                            var image = LoadImage(msg);
-                            image.Freeze();
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                if (image != null)
-                                {
-                                    FramesPerSec++;
-                                    VideoImg.Source = image;
-                                }
-                            }));
-                            break;
-                        }
-                    case Message.MessageType.FaceDetection:
-                        {
-                            var image = LoadImage(msg);
-                            image.Freeze();
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                if (image != null)
-                                {
-                                    FaceDetectionImg.Source = image;
-                                }
-                            }));
-                            break;
-                        }
-                    case Message.MessageType.ProfilingData:
-                        {
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                msg.GetHeaderMapValue("AiImagesPerSec", out object fps);
-                                LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(fps)}";
+                    BitmapSource image = null;
+                    if (((Message.MessageType)type & Message.MessageType.OpenCVMatFrame) == Message.MessageType.OpenCVMatFrame)
+                    {
+                        image = LoadImage(msg);
+                    }
+                    else if (((Message.MessageType)type & Message.MessageType.JpegFrame) == Message.MessageType.JpegFrame)
+                    {
+                        image = LoadImage(new MemoryStream(msg.GetData()));
 
-                                msg.GetHeaderMapValue("CpuUsage", out object cpuUsage);
-                                LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpuUsage)}%";
-
-                                msg.GetHeaderMapValue("CpuTempature", out object cpuTemp);
-                                LabelCpuTemperature.Content = $"Service CPU temperature: {Convert.ToInt32(cpuTemp)}F";
-                            }));
-                            break;
-                        }
-                    default:
+                    }
+                    if (image != null)
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
-                            Debug.Assert(false, "Unhandled message type.");
-                            break;
-                        }
+                            if (((Message.MessageType)type & Message.MessageType.FaceDetection) == Message.MessageType.FaceDetection)
+                            {
+                                FaceDetectionImg.Source = image;
+                            }
+                            else
+                            {
+                                FramesPerSec++;
+                                VideoImg.Source = image;
+                            }
+                        }));
+                    }
+                }
+                else if (((Message.MessageType)type & Message.MessageType.ProfilingData) == Message.MessageType.ProfilingData)
+                { 
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        msg.GetHeaderMapValue("AiImagesPerSec", out object fps);
+                        LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(fps)}";
+
+                        msg.GetHeaderMapValue("CpuUsage", out object cpuUsage);
+                        LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpuUsage)}%";
+
+                        msg.GetHeaderMapValue("CpuTempature", out object cpuTemp);
+                        LabelCpuTemperature.Content = $"Service CPU temperature: {Convert.ToInt32(cpuTemp)}F";
+                    }));
+                }
+                else
+                {
+                    Debug.Assert(false, "Unhandled message type.");
                 }
             }
             catch(Exception ex)
@@ -166,6 +164,8 @@ namespace RPiCameraClient
                 byte[] imgBuffer = msg.GetData();
 
                 var image = BitmapImage.Create(width, height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, System.Windows.Media.Imaging.BitmapPalettes.WebPalette, imgBuffer, frameStep);
+                
+                image.Freeze();
                 return image;
             }
             catch(Exception ex)
@@ -173,6 +173,19 @@ namespace RPiCameraClient
                 Debug.Assert(false, $"LoadImage failed {ex.Message}.");
                 return null;
             }
-        }     
+        }
+
+        private BitmapImage LoadImage(Stream stream)
+        {
+            var image = new BitmapImage();
+
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = stream;
+            image.EndInit();
+
+            image.Freeze();
+            return image;
+        }
     }
 }
