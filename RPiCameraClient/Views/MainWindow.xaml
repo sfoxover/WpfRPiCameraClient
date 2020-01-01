@@ -46,10 +46,19 @@
         </StackPanel>
 
         <!-- Face detection information -->
-        <StackPanel Orientation="Vertical" Width="Auto" Height="Auto" Grid.Row="1" Grid.Column="1">
-            <Label Name="LabelFaceDetectFPS" Content="Face detection frames per second:"/>
-            <Label Name="LabelCpuUsage" Content="Service CPU usage:"/>
-        </StackPanel>
+        <Grid Width="Auto" Height="Auto" Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Name="LabelCpuUsage" Content="Service CPU usage:" Grid.Column="0" Grid.Row="0"/>
+            <Label Name="LabelCpuTemperature" Content="Service CPU temperature:" Grid.Column="1" Grid.Row="0"/>
+            <Label Name="LabelFaceDetectFPS" Content="Face detection frames per second:"  Grid.Column="0" Grid.Row="1"/>
+        </Grid>
 
         <!-- Face detection frames -->
         <Grid Width="Auto" Height="Auto" Grid.Row="2" Grid.Column="2" Background="Black">

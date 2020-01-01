@@ -126,8 +126,11 @@ namespace RPiCameraClient
                                 msg.GetHeaderMapValue("AiImagesPerSec", out object fps);
                                 LabelFaceDetectFPS.Content = $"Face detection frames per second: {Convert.ToInt32(fps)}";
 
-                                msg.GetHeaderMapValue("CpuUsage", out object cpu);
-                                LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpu)}%";
+                                msg.GetHeaderMapValue("CpuUsage", out object cpuUsage);
+                                LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpuUsage)}%";
+
+                                msg.GetHeaderMapValue("CpuTempature", out object cpuTemp);
+                                LabelCpuTemperature.Content = $"Service CPU temperature: {Convert.ToInt32(cpuTemp)}F";
                             }));
                             break;
                         }
