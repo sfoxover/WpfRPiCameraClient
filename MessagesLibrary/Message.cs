@@ -135,6 +135,15 @@ namespace MessagesLibrary
 			Data = value;
 		}
 
+		public Int32 GetDataSize()
+		{
+			if (Data != null)
+			{
+				return Data.Count();
+			}
+			return 0;
+		}
+
 		// Get Set for _type
 		public MessageType GetMessageType()
 		{

@@ -21,6 +21,9 @@ namespace RPiCameraClient
         // Calculate FPS
         private volatile Int32 FramesPerSec = 0;
 
+        // Calculate bandwidth
+        private volatile Int32 BytesPerSec = 0;
+
         // ZeroMQ message subscription
         ReadMessages Reader { get; set; }
 
@@ -43,7 +46,7 @@ namespace RPiCameraClient
             bool bOK = Settings.Instance.Initialize(Helpers.AppendToRunPath("message_developer.json"), out string error);
             Debug.Assert(bOK, error);
             ReadMessages();
-            CalculateFPS();
+            CalculateClientProfiling();
         }
 
         private void ReadMessages()
@@ -61,8 +64,8 @@ namespace RPiCameraClient
             });
         }
 
-        // Calculate FPS
-        void CalculateFPS()
+        // Calculate client FPS and bandwidth
+        void CalculateClientProfiling()
         {
             // Calculate FPS 
             var timer = new DispatcherTimer();
@@ -71,7 +74,9 @@ namespace RPiCameraClient
             {
                 timer.IsEnabled = true;
                 LabelFPS.Content = $"Frames per second: {FramesPerSec}";
+                LabelClientBandwidth.Content = $"Client bandwidth: {Helpers.FormatBandwidth(BytesPerSec)}";
                 FramesPerSec = 0;
+                BytesPerSec = 0;
             };
             timer.Start();
         }
@@ -90,6 +95,9 @@ namespace RPiCameraClient
         {
             try
             {
+                // Used to calculate bandwidth used
+                BytesPerSec += msg.GetDataSize();
+
                 switch (msg.GetMessageType())
                 {
                     case Message.MessageType.OpenCVMatFrame:

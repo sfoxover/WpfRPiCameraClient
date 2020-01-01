@@ -42,7 +42,7 @@
         <!-- Video and sensor information -->
         <StackPanel Orientation="Vertical" Width="Auto" Height="Auto" Grid.Row="1">
             <Label Name="LabelFPS" Content="Frames per second:"/>
-            <Label Name="LabelSensors" Content=""/>
+            <Label Name="LabelClientBandwidth" Content="Client bandwidth:"/>
         </StackPanel>
 
         <!-- Face detection information -->
