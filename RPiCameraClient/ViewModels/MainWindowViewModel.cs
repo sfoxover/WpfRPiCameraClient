@@ -14,7 +14,19 @@ namespace RPiCameraClient.ViewModels
         private Snackbar MainWndSnackbar = null;
 
         // Allow changes to AI method
-        private volatile bool AllowAIUpdates = true;
+        private volatile bool AllowUICommandUpdates = true;
+
+        // Video playback toggle button
+        private bool _videoPlayOn = true;
+        public bool VideoPlayOn
+        {
+            get { return _videoPlayOn; }
+            set
+            {
+                if (SetProperty(ref _videoPlayOn, value))
+                    UpdateVideoPlayback();
+            }
+        }
 
         // Face detection AI values: Off, OpenCV, Dnn, Mod, Hog
         private bool _faceAiOff = true;
@@ -75,7 +87,8 @@ namespace RPiCameraClient.ViewModels
         public MainWindowViewModel(Snackbar snackbar)
         {
             MainWndSnackbar = snackbar;
-            GetCurrentFaceAIDetection();
+            GetVideoPlaying();
+            GetCurrentFaceAIDetection();            
         }
 
         // Get the current server settings for face detection AI
@@ -95,7 +108,7 @@ namespace RPiCameraClient.ViewModels
                 {
                     msg.GetHeaderMapValue("AIMethod", out object value);
                     string method = Convert.ToString(value);
-                    AllowAIUpdates = false;
+                    AllowUICommandUpdates = false;
 
                     // Set correct choice
                     if (method == "Off")
@@ -108,7 +121,7 @@ namespace RPiCameraClient.ViewModels
                         FaceAiMod = true;
                     else if (method == "Hog")
                         FaceAiHog = true;
-                    AllowAIUpdates = true;
+                    AllowUICommandUpdates = true;
                 }
             });
         }
@@ -116,7 +129,7 @@ namespace RPiCameraClient.ViewModels
         // Update AI detection method on server
         void UpdateFaceAIDetection(string method)
         {
-            if (AllowAIUpdates)
+            if (AllowUICommandUpdates)
             {
                 Task.Run(() =>
                 {
@@ -124,6 +137,57 @@ namespace RPiCameraClient.ViewModels
                     var items = new Dictionary<string, object>();
                     items["Command"] = "SetAIMethod";
                     items["Value"] = method;
+                    var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
+
+                    // Send command
+                    var cmd = new SendCommand();
+                    bool bOK = cmd.SendCommandMessage(ref msg, out string error);
+                    Debug.Assert(bOK, error);
+                });
+            }
+        }
+
+        // Check if video is playing
+        void GetVideoPlaying()
+        {
+            Task.Run(() =>
+            {
+                // Create a message payload
+                var items = new Dictionary<string, object>();
+                items["Command"] = "GetVideoPlaying";
+                var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
+
+                // Send command
+                var cmd = new SendCommand();
+                bool bOK = cmd.SendCommandMessage(ref msg, out string error);
+                if (bOK)
+                {
+                    msg.GetHeaderMapValue("VideoPlaying", out object value);
+                    bool playing = Convert.ToBoolean(value);
+                    AllowUICommandUpdates = false;
+                    VideoPlayOn = playing;
+                    AllowUICommandUpdates = true;
+                }
+            });
+        }
+
+        // Toggle video playback on or off
+        void UpdateVideoPlayback()
+        {
+            if (AllowUICommandUpdates)
+            {
+                Task.Run(() =>
+                {
+                    // Create a message payload
+                    var items = new Dictionary<string, object>();
+                    if (VideoPlayOn)
+                    {
+                        items["Command"] = "StartVideo";
+                    }
+                    else
+                    {
+                        items["Command"] = "StopVideo";
+                    }
                     var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
 
                     // Send command

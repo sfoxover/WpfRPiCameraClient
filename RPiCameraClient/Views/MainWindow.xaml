@@ -27,7 +27,18 @@
         </Grid.ColumnDefinitions>
 
         <materialDesign:ColorZone Mode="PrimaryDark" Padding="16" CornerRadius="3" materialDesign:ShadowAssist.ShadowDepth="Depth3" Margin="2" Grid.Row="0" Grid.ColumnSpan="2">   
-            <StackPanel Orientation="Horizontal">                
+            <StackPanel Orientation="Horizontal">     
+                <!-- Video playback control-->
+                <TextBlock VerticalAlignment="Center" Margin="16 0 10 0">Video playback</TextBlock>
+                <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" ToolTip="Toggle video stream on and off" IsChecked="{Binding VideoPlayOn}">
+                    <materialDesign:PackIcon Kind="Stop">
+                    </materialDesign:PackIcon>
+                    <materialDesign:ToggleButtonAssist.OnContent>
+                        <materialDesign:PackIcon Kind="Play" />
+                    </materialDesign:ToggleButtonAssist.OnContent>
+                </ToggleButton>
+                
+                <!-- AI face detect method -->
                 <TextBlock VerticalAlignment="Center" Margin="16 0 0 0">Facial detection AI</TextBlock>
                 <StackPanel Orientation="Horizontal" Margin="2">
                     <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}" Margin="4" IsChecked="{Binding FaceAiOff}" Content="Off" />
