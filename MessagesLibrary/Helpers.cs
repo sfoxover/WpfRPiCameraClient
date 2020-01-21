@@ -69,6 +69,6 @@ namespace MessagesLibrary
 
             string result = string.Format("{0:n" + decimalPlaces + "} {1}", adjustedSize, SizeSuffixes[mag]);
             return result;
-        }
+        }       
     }
 }

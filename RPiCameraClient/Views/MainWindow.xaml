@@ -86,7 +86,7 @@
         </Grid>
 
         <!-- Popup snackbar window -->
-        <materialDesign:Snackbar MessageQueue="{materialDesign:MessageQueue}" x:Name="MainSnackbar" Grid.Row="2"/>
+        <materialDesign:Snackbar MessageQueue="{materialDesign:MessageQueue}" x:Name="MainSnackbar" Grid.Row="2" Grid.ColumnSpan="2"/>
         
     </Grid>
 </Window>

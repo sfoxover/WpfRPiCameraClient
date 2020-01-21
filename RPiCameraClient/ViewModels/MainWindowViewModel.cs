@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace RPiCameraClient.ViewModels
 {
@@ -122,6 +123,12 @@ namespace RPiCameraClient.ViewModels
                     else if (method == "Hog")
                         FaceAiHog = true;
                     AllowUICommandUpdates = true;
+
+                    ShowSnackMessage($"Server facial detection is currently {method}.");
+                }
+                else
+                {
+                    ShowSnackMessage($"Failed to connect to server {Settings.Instance.CmdClientUri}.");
                 }
             });
         }
@@ -196,6 +203,14 @@ namespace RPiCameraClient.ViewModels
                     Debug.Assert(bOK, error);
                 });
             }
+        }
+
+        void ShowSnackMessage(string msg)
+        {
+            Application.Current.Dispatcher.Invoke(new Action(() =>
+            {
+                MainWndSnackbar.MessageQueue.Enqueue(msg);
+            }));
         }
     }
 }
