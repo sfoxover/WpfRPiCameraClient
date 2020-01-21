@@ -139,7 +139,7 @@ namespace RPiCameraClient
                         LabelCpuUsage.Content = $"Service CPU usage: {Convert.ToInt32(cpuUsage)}%";
 
                         msg.GetHeaderMapValue("CpuTempature", out object cpuTemp);
-                        LabelCpuTemperature.Content = $"Service CPU temperature: {Convert.ToInt32(cpuTemp)}F";
+                        LabelCpuTemperature.Content = $"Service CPU temperature: {Convert.ToInt32(cpuTemp)} Celsius";
                     }));
                 }
                 else
