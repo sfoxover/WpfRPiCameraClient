@@ -29,6 +29,34 @@ namespace RPiCameraClient.ViewModels
             }
         }
 
+        // Live video playback toggle button
+        private bool _liveVideoPlayOn = true;
+        public bool LiveVideoPlayOn
+        {
+            get { return _liveVideoPlayOn; }
+            set
+            {
+                if (SetProperty(ref _liveVideoPlayOn, value))
+                    UpdateLiveVideoPlayback(!_liveVideoPlayOn);
+            }
+        }
+
+        // Show or hide video player window
+        private bool _videoPlayVisible = true;
+        public bool VideoPlayVisible
+        {
+            get { return _videoPlayVisible; }
+            set { SetProperty(ref _videoPlayVisible, value); }
+        }
+
+        // Show or hide face detection video window
+        private bool _facePlayVisible = true;
+        public bool FacePlayVisible
+        {
+            get { return _facePlayVisible; }
+            set { SetProperty(ref _facePlayVisible, value); }
+        }
+
         // Face detection AI values: Off, OpenCV, Dnn, Mod, Hog
         private bool _faceAiOff = true;
         public bool FaceAiOff
@@ -111,12 +139,17 @@ namespace RPiCameraClient.ViewModels
                     msg.GetHeaderMapValue("Settings", out object value);
                     Dictionary<string, object> settingsMap = value as Dictionary<string, object>;
 
-                    string method = settingsMap["AIMethod"] as string;
+                    // Do not send UI changes to the server while view model is synced with current settings
                     AllowUICommandUpdates = false;
 
                     // Get facial detection method
+                    string method = settingsMap["AIMethod"] as string;
+                    bool faceWindowVisible = true;
                     if (method == "Off")
+                    {
                         FaceAiOff = true;
+                        faceWindowVisible = false;
+                    }
                     else if (method == "OpenCV")
                         FaceAiOpenCV = true;
                     else if (method == "Dnn")
@@ -125,15 +158,20 @@ namespace RPiCameraClient.ViewModels
                         FaceAiMod = true;
                     else if (method == "Hog")
                         FaceAiHog = true;
-                    AllowUICommandUpdates = true;
+
+                    // Update video window visibility
+                    FacePlayVisible = faceWindowVisible;
 
                     // Get is video playing
-                    bool playing = Convert.ToBoolean(settingsMap["VideoPlaying"]);
-                    AllowUICommandUpdates = false;
-                    VideoPlayOn = playing;
+                    VideoPlayOn = Convert.ToBoolean(settingsMap["VideoPlaying"]);
+
+                    // Get is live video playing
+                    bool livePlaying = !Convert.ToBoolean(settingsMap["UseSampleVideoFile"]);
+                    LiveVideoPlayOn = livePlaying;
+
                     AllowUICommandUpdates = true;
 
-                    ShowSnackMessage($"Face detection is currently {method}.");
+                    ShowSnackMessage($"Face detection is {method}, live video is {LiveVideoPlayOn}.");
                 }
                 else
                 {
@@ -163,6 +201,27 @@ namespace RPiCameraClient.ViewModels
 
                 // Do settings check to verify change
                 await GetCurrentSettings();
+            }
+        }
+
+        // Toggle live video playback on or off
+        void UpdateLiveVideoPlayback(bool useSample)
+        {
+            if (AllowUICommandUpdates)
+            {
+                Task.Run(() =>
+                {
+                    // Create a message payload
+                    var items = new Dictionary<string, object>();
+                    items["Command"] = "SetUseSampleVideo";
+                    items["Value"] = useSample;
+                    var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
+
+                    // Send command
+                    var cmd = new SendCommand();
+                    bool bOK = cmd.SendCommandMessage(ref msg, out string error);
+                    Debug.Assert(bOK, error);
+                });
             }
         }
 

@@ -15,6 +15,11 @@
         mc:Ignorable="d"
         Closing="Window_Closing"
         Title="Camera Client" Height="800" Width="1024">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,16 +33,27 @@
 
         <materialDesign:ColorZone Mode="PrimaryDark" Padding="16" CornerRadius="3" materialDesign:ShadowAssist.ShadowDepth="Depth3" Margin="2" Grid.Row="0" Grid.ColumnSpan="2">   
             <StackPanel Orientation="Horizontal">     
+
                 <!-- Video playback control-->
-                <TextBlock VerticalAlignment="Center" Margin="16 0 10 0">Video playback</TextBlock>
-                <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" ToolTip="Toggle video stream on and off" IsChecked="{Binding VideoPlayOn}">
+                <TextBlock VerticalAlignment="Center" Margin="16 0 10 0">Play video</TextBlock>
+                <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" ToolTip="Toggle video on and off" IsChecked="{Binding VideoPlayOn}">
                     <materialDesign:PackIcon Kind="Stop">
                     </materialDesign:PackIcon>
                     <materialDesign:ToggleButtonAssist.OnContent>
                         <materialDesign:PackIcon Kind="Play" />
                     </materialDesign:ToggleButtonAssist.OnContent>
                 </ToggleButton>
-                
+
+                <!-- Live video control-->
+                <TextBlock VerticalAlignment="Center" Margin="16 0 10 0">Live video</TextBlock>
+                <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}" ToolTip="Show live video or a sample video file" IsChecked="{Binding LiveVideoPlayOn}">
+                    <materialDesign:PackIcon Kind="VideocamOffOutline">
+                    </materialDesign:PackIcon>
+                    <materialDesign:ToggleButtonAssist.OnContent>
+                        <materialDesign:PackIcon Kind="VideoCall" />
+                    </materialDesign:ToggleButtonAssist.OnContent>
+                </ToggleButton>
+
                 <!-- AI face detect method -->
                 <TextBlock VerticalAlignment="Center" Margin="16 0 0 0">Facial detection AI</TextBlock>
                 <StackPanel Orientation="Horizontal" Margin="2">
@@ -73,14 +89,14 @@
 
         <!-- Face detection frames -->
         <Grid Width="Auto" Height="Auto" Grid.Row="2" Grid.Column="2" Background="Black">
-            <Border BorderThickness="1" BorderBrush="Black">
+            <Border BorderThickness="1" BorderBrush="Black" Visibility="{Binding Path=FacePlayVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Image Name="FaceDetectionImg" Margin="10,10,10,10" MinHeight="100" MinWidth="100" />
             </Border>
         </Grid>
 
         <!-- Video playback -->
         <Grid Width="Auto" Height="Auto" Grid.Row="2" Grid.ColumnSpan="1" Background="Black">
-            <Border BorderThickness="1" BorderBrush="Black">
+            <Border BorderThickness="1" BorderBrush="Black" Visibility="{Binding Path=VideoPlayVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Image Name="VideoImg" Margin="10,10,10,10" MinHeight="100" MinWidth="100" />
             </Border>
         </Grid>
