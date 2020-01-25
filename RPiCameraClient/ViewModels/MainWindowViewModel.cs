@@ -88,18 +88,17 @@ namespace RPiCameraClient.ViewModels
         public MainWindowViewModel(Snackbar snackbar)
         {
             MainWndSnackbar = snackbar;
-            GetVideoPlaying();
-            GetCurrentFaceAIDetection();            
+            GetCurrentSettings();            
         }
 
-        // Get the current server settings for face detection AI
-        void GetCurrentFaceAIDetection()
+        // Get the current server settings 
+        async Task GetCurrentSettings()
         {
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 // Create a message payload
                 var items = new Dictionary<string, object>();
-                items["Command"] = "GetAIMethod";
+                items["Command"] = "GetCurrentSettings";
                 var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
 
                 // Send command
@@ -108,11 +107,14 @@ namespace RPiCameraClient.ViewModels
                 Debug.Assert(bOK, error);
                 if (bOK)
                 {
-                    msg.GetHeaderMapValue("AIMethod", out object value);
-                    string method = Convert.ToString(value);
+                    // Read all json setting into object map
+                    msg.GetHeaderMapValue("Settings", out object value);
+                    Dictionary<string, object> settingsMap = value as Dictionary<string, object>;
+
+                    string method = settingsMap["AIMethod"] as string;
                     AllowUICommandUpdates = false;
 
-                    // Set correct choice
+                    // Get facial detection method
                     if (method == "Off")
                         FaceAiOff = true;
                     else if (method == "OpenCV")
@@ -125,7 +127,13 @@ namespace RPiCameraClient.ViewModels
                         FaceAiHog = true;
                     AllowUICommandUpdates = true;
 
-                    ShowSnackMessage($"Server facial detection is currently {method}.");
+                    // Get is video playing
+                    bool playing = Convert.ToBoolean(settingsMap["VideoPlaying"]);
+                    AllowUICommandUpdates = false;
+                    VideoPlayOn = playing;
+                    AllowUICommandUpdates = true;
+
+                    ShowSnackMessage($"Face detection is currently {method}.");
                 }
                 else
                 {
@@ -135,11 +143,11 @@ namespace RPiCameraClient.ViewModels
         }
 
         // Update AI detection method on server
-        void UpdateFaceAIDetection(string method)
+        async Task UpdateFaceAIDetection(string method)
         {
             if (AllowUICommandUpdates)
             {
-                Task.Run(() =>
+                await Task.Run(() =>
                 {
                     // Create a message payload
                     var items = new Dictionary<string, object>();
@@ -152,31 +160,10 @@ namespace RPiCameraClient.ViewModels
                     bool bOK = cmd.SendCommandMessage(ref msg, out string error);
                     Debug.Assert(bOK, error);
                 });
+
+                // Do settings check to verify change
+                await GetCurrentSettings();
             }
-        }
-
-        // Check if video is playing
-        void GetVideoPlaying()
-        {
-            Task.Run(() =>
-            {
-                // Create a message payload
-                var items = new Dictionary<string, object>();
-                items["Command"] = "GetVideoPlaying";
-                var msg = MessageFactory.Create("ServerCommand", (Int32)Message.MessageType.ServerCommand, items);
-
-                // Send command
-                var cmd = new SendCommand();
-                bool bOK = cmd.SendCommandMessage(ref msg, out string error);
-                if (bOK)
-                {
-                    msg.GetHeaderMapValue("VideoPlaying", out object value);
-                    bool playing = Convert.ToBoolean(value);
-                    AllowUICommandUpdates = false;
-                    VideoPlayOn = playing;
-                    AllowUICommandUpdates = true;
-                }
-            });
         }
 
         // Toggle video playback on or off
